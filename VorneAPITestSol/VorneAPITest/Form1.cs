@@ -10,13 +10,42 @@ using System.Windows.Forms;
 using System.Net.Http;
 using Newtonsoft.Json;
 using System.Media;
+using System.Net.Sockets;
+using System.Net;
 
 
 namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
-        
+        // buffer size for server client relationship
+        const int BUFFERSIZE = 1024 * 1024;
+        const int ROLLTIME = 10;
+
+
+        // ip address of the vorne machine
+        const string VORNEIP = "10.119.12.13";
+        const string WCNAME = "3920";
+
+        readonly IPAddress SERVERIP = IPAddress.Loopback;
+        const int SERVERPORT = 50010;
+
+        // keeps track of the production state 
+        private string productionState;
+        private string partID;
+
+        // hour, min, sec are what the user has set on the time
+        // tt stands for takt timer and represents the takt timer going down in seconds
+        private int hour, min, sec, tt;
+
+        private bool stopped = true;
+
+
+        // server end point and listener
+        IPEndPoint ep;
+        TcpListener listener;
+
+
         
         
 
@@ -28,49 +57,111 @@ namespace VorneAPITest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            // initialize partID and productionState
+            this.partID = null;
+            this.productionState = null;
 
+
+
+            this.lblWC.Text = WCNAME;
+
+            this.hour = 0;
+            this.min = 0;
+            this.sec = 0;
+           
             
 
             // make it so the screen is in the bottom right corner
-            Rectangle workingArea = Screen.GetWorkingArea(this);
-            this.Location = new Point(workingArea.Right - Size.Width, workingArea.Bottom - Size.Height);
+            Rectangle wa = Screen.GetWorkingArea(this);
+            this.Location = new Point(wa.Left, wa.Top);
+            this.Width = wa.Width;
+            this.Height = wa.Height;
+
+            // aligning
+            this.lblClock.Location = new Point((wa.Right / 2) - (this.lblClock.Width / 2), (wa.Bottom / 2) - (this.lblClock.Height / 2));
+
+            this.lblPartID.Location = new Point(wa.Right - this.lblPartID.Width - 20, wa.Top + 20);
+            this.lblPS.Location = new Point(wa.Left + 20, wa.Top + 20);
+            this.lblTime.Location = new Point(wa.Left + 20, wa.Bottom - this.lblTime.Height - 20);
+            this.lblWC.Location = new Point(wa.Right - this.lblWC.Width - 20, wa.Bottom - this.lblWC.Height - 20);
+
+            this.btnHrInc.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y - this.btnHrInc.Height);
+            this.btnHrDec.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y + this.lblClock.Height);
+            this.btnMinInc.Location = new Point((wa.Right / 2) - (this.btnMinInc.Width / 2), this.lblClock.Location.Y - this.btnHrInc.Height);
+            this.btnMinDec.Location = new Point((wa.Right / 2) - (this.btnMinDec.Width / 2), this.lblClock.Location.Y + this.lblClock.Height);
+            this.btnSecInc.Location = new Point(this.lblClock.Location.X + this.lblClock.Width - this.btnSecInc.Width, this.lblClock.Location.Y - this.btnHrInc.Height);
+            this.btnSecDec.Location = new Point(this.lblClock.Location.X + this.lblClock.Width - this.btnSecDec.Width, this.lblClock.Location.Y + this.lblClock.Height);
+
+            this.btnStart.Location = new Point((wa.Right / 2) - this.btnStart.Width, wa.Bottom - this.btnStart.Height - 20);
+            this.btnStop.Location = new Point(wa.Right / 2, wa.Bottom - this.btnStop.Height - 20);
 
             // make it so the application will always be on top
+            this.BringToFront();
             this.TopMost = true;
 
-
-            // add the work centers to the work center combo box
-            cbWC.Items.Add("3910");
-            cbWC.Items.Add("3920");
-            cbWC.Items.Add("3915");
-
-            cbWC.SelectedIndex = 0;
+            // initialize server enpoint and listenter
+            this.ep = new IPEndPoint(SERVERIP, SERVERPORT);
+            this.listener = new TcpListener(ep);
+            listener.Start(); // Start listening
 
 
             timer.Start();
 
         }
 
-        private string getWCIP(string wc)
+        private string getColor()
         {
-            if (wc == "3910")
+            if (this.stopped == false && this.tt < ROLLTIME)
             {
-                return "10.119.12.14";
+                return "GRAY";
+            }  
+            else if (this.productionState == "RUNNING")
+            {
+                return "GREEN";
             }
-            else if (wc == "3920")
+            else if (this.productionState == "DOWN")
             {
-                return "10.119.12.13";
+                return "RED";
             }
-            else if (wc == "3915")
+            else if (this.productionState == "CHANGEOVER")
             {
-                return "10.119.12.15";
+                return "YELLOW";
             }
             else
             {
-                return null;
+                return "BLUE";
+            }
+        }
+
+        private System.Drawing.Color colorFromPS(string ps)
+        {
+            if (ps == "GREEN")
+            {
+                return System.Drawing.Color.PaleGreen;
+            }
+            else if (ps == "RED")
+            {
+                return System.Drawing.Color.Crimson;
+            }
+            else if (ps == "YELLOW")
+            {
+                return System.Drawing.Color.Yellow;
+            }
+            else if (ps == "BLUE")
+            {
+                return System.Drawing.Color.DeepSkyBlue;
+            }
+            else if (ps == "GRAY")
+            {
+                return System.Drawing.Color.LightGray;
+            }
+            else
+            {
+                return System.Drawing.Color.Black;
             }
 
         }
+
 
         private string clockFromSec(double secs)
         {
@@ -103,107 +194,235 @@ namespace VorneAPITest
 
             return clock;
 
+        }
+
+
+        private void btnHrInc_Click(object sender, EventArgs e)
+        {
+            if (this.hour == 23)
+                this.hour = 0;
+            else
+                this.hour++;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void btnHrDec_Click(object sender, EventArgs e)
+        {
+            if (this.hour == 0)
+                this.hour = 23;
+            else
+                this.hour--;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void btnMinInc_Click(object sender, EventArgs e)
+        {
+            if (this.min == 59)
+                this.min = 0;
+            else
+                this.min++;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void btnMinDec_Click(object sender, EventArgs e)
+        {
+            if (this.min == 0)
+                this.min = 59;
+            else
+                this.min--;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void btnSecInc_Click(object sender, EventArgs e)
+        {
+            if (this.sec == 59)
+                this.sec = 0;
+            else
+                this.sec++;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void btnSecDec_Click(object sender, EventArgs e)
+        {
+            if (this.sec == 0)
+                this.sec = 59;
+            else
+                this.sec--;
+
+            // update takt timer in seconds
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+
+            // update clock
+            this.lblClock.Text = this.clockFromSec(this.tt);
+        }
+
+        private void replyClient()
+        {
+
+        }
+
+        private void taktTimer_Tick(object sender, EventArgs e)
+        { 
+
+            if (this.tt == 0)
+                this.tt = this.calcSec(this.hour, this.min, this.sec - 1);
+            else
+                this.tt--;
+
+            this.lblClock.Text = this.clockFromSec(this.tt);
+
+        }
+
+        private void btnStart_Click(object sender, EventArgs e)
+        {
+            
+
+            if (this.calcSec(this.hour, this.min, this.sec) < ROLLTIME)
+            {
+                MessageBox.Show("Error: Takt time must be greater than " + ROLLTIME.ToString() + " seconds");
+                return;
+            }
+
+            this.taktTimer.Start();
+
+            this.stopped = false;
+
+            
+
+            this.btnHrInc.Visible = false;
+            this.btnHrDec.Visible = false;
+            this.btnMinInc.Visible = false;
+            this.btnMinDec.Visible = false;
+            this.btnSecInc.Visible = false;
+            this.btnSecDec.Visible = false;
+
+            
+
+        }
+
+        private void btnStop_Click(object sender, EventArgs e)
+        {
+            this.taktTimer.Stop();
+
+            this.stopped = true;
+
+            
+
+            this.tt = this.calcSec(this.hour, this.min, this.sec);
+            this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.btnHrInc.Visible = true;
+            this.btnHrDec.Visible = true;
+            this.btnMinInc.Visible = true;
+            this.btnMinDec.Visible = true;
+            this.btnSecInc.Visible = true;
+            this.btnSecDec.Visible = true;
 
 
         }
 
+        private int calcSec(int hour, int min, int sec)
+        {
+            return (hour * 3600) + (min * 60) + sec;
+        }
+
         private void updateHUD()
         {
+
+            
+
             RestClient client = new RestClient();
 
 
             // make requests to vorne
-            string requestPS = client.makeRequest("http://" + this.getWCIP(this.cbWC.SelectedItem.ToString()) + "/api/v0/process_state/active", httpVerb.GET);
-            string requestPR = client.makeRequest("http://" + this.getWCIP(this.cbWC.SelectedItem.ToString()) + "/api/v0/part_run", httpVerb.GET);
-            string requestT = client.makeRequest("http://" + this.getWCIP(this.cbWC.SelectedItem.ToString()) + "/api/v0/team", httpVerb.GET);
+            string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
+            string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
+            
 
 
             // deserialize objects
             PSActiveNS.PSActive psActive = JsonConvert.DeserializeObject<PSActiveNS.PSActive>(requestPS);
             PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
-            TeamNS.Team team = JsonConvert.DeserializeObject<TeamNS.Team>(requestT);
+
+            this.partID = partRun.data.part_id;
 
             // update HUD
-
-            double sec = psActive.data.elapsed;
-
-            double taktTime = partRun.data.takt_time;
-            string ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
-            this.lblPS.Text = ps;
-
             
+
+            this.productionState = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
+
+            if (this.tt < ROLLTIME && this.stopped == false)
+                this.lblPS.Text = "ROLL!";
+            else
+                this.lblPS.Text = this.productionState;
+
+            this.lblPartID.Text = partRun.data.part_id.ToUpper();
 
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
-            if (ps == "RUNNING")
+
+            if (this.productionState == "DOWN")
             {
-                
-
-                this.lblPartID.Text = partRun.data.part_id.ToUpper();
-
-
-                
-
-                // update clock (based on interval time
-                int cc = -((Convert.ToInt32(Math.Floor(sec)) % Convert.ToInt32(Math.Floor(taktTime))) - Convert.ToInt32(Math.Floor(taktTime))) - 1;
-
-
-                this.BackColor = System.Drawing.Color.PaleGreen;
-
-                this.lblClock.Text = this.clockFromSec(cc);
-
-
-                Console.WriteLine('\r' + Math.Round(sec, 1).ToString());
-                
-                if (Math.Round(sec, 1) % Math.Round(taktTime, 1) == 0.0)
-                {
-                    Console.WriteLine(Math.Round(sec, 1).ToString() + "-----------" + Math.Round(taktTime, 1).ToString());
-
-                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-                    
-                    sp.Play();
-                }
-                
-            }
-            else if (ps == "DOWN")
-            {
-                this.lblPartID.Text = partRun.data.part_id.ToUpper();
-
+                // special case
                 string downReason = psActive.data.process_state_reason.ToUpper();
 
                 this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
 
-                this.BackColor = System.Drawing.Color.Crimson;
-
-                // update clock
-                this.lblClock.Text = this.clockFromSec(sec);
-            }   
-            else if (ps == "CHANGEOVER")
-            {
-                this.lblPartID.Text = partRun.data.part_id.ToUpper();
-
-
-                this.BackColor = System.Drawing.Color.Orange;
-
-                // update clock
-                this.lblClock.Text = this.clockFromSec(sec);
             }
-            else
+
+            
+
+            this.BackColor = this.colorFromPS(this.getColor());
+
+            // server listening for clients' requests
+
+            try
             {
+                byte[] buffer = new byte[BUFFERSIZE];
 
-                this.BackColor = System.Drawing.Color.DeepSkyBlue;
-               
+                /* Can only proceed from here
+                    * if a client makes a request to our application.
+                    * Once receives a request, should proceed from this line.
+                    */
+                TcpClient c = listener.AcceptTcpClient();
 
-                this.lblPartID.Text = "";
-                
+                // Reads the bytes sent from the client
+                c.GetStream().Read(buffer, 0, BUFFERSIZE);
 
-                
-
-                // update clock
-                this.lblClock.Text = this.clockFromSec(sec);
+                // send message back to client
+                Message message = new Message(this.productionState, this.getColor(), this.partID, this.tt);
+                byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+                c.GetStream().Write(messageBytes, 0, messageBytes.Length);
             }
-             
-
+            catch (Exception exc)
+            {
+                
+            }
 
 
         }

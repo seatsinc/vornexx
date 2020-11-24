@@ -32,125 +32,188 @@ namespace VorneAPITest
             this.components = new System.ComponentModel.Container();
             this.timer = new System.Windows.Forms.Timer(this.components);
             this.lblWC = new System.Windows.Forms.Label();
-            this.cbWC = new System.Windows.Forms.ComboBox();
             this.lblClock = new System.Windows.Forms.Label();
             this.lblPS = new System.Windows.Forms.Label();
             this.lblPartID = new System.Windows.Forms.Label();
-            this.lblHr = new System.Windows.Forms.Label();
-            this.lblMin = new System.Windows.Forms.Label();
-            this.lblSec = new System.Windows.Forms.Label();
             this.lblTime = new System.Windows.Forms.Label();
+            this.btnHrInc = new System.Windows.Forms.Button();
+            this.btnHrDec = new System.Windows.Forms.Button();
+            this.btnMinDec = new System.Windows.Forms.Button();
+            this.btnMinInc = new System.Windows.Forms.Button();
+            this.btnSecDec = new System.Windows.Forms.Button();
+            this.btnSecInc = new System.Windows.Forms.Button();
+            this.btnStart = new System.Windows.Forms.Button();
+            this.btnStop = new System.Windows.Forms.Button();
+            this.taktTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // timer
             // 
+            this.timer.Interval = 10;
             this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
             // lblWC
             // 
             this.lblWC.AutoSize = true;
-            this.lblWC.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblWC.Location = new System.Drawing.Point(476, 366);
+            this.lblWC.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblWC.Location = new System.Drawing.Point(1294, 816);
             this.lblWC.Name = "lblWC";
-            this.lblWC.Size = new System.Drawing.Size(90, 42);
+            this.lblWC.Size = new System.Drawing.Size(205, 108);
             this.lblWC.TabIndex = 0;
-            this.lblWC.Text = "WC:";
-            // 
-            // cbWC
-            // 
-            this.cbWC.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbWC.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbWC.FormattingEnabled = true;
-            this.cbWC.Location = new System.Drawing.Point(572, 363);
-            this.cbWC.Name = "cbWC";
-            this.cbWC.Size = new System.Drawing.Size(150, 50);
-            this.cbWC.TabIndex = 1;
+            this.lblWC.Text = "WC";
             // 
             // lblClock
             // 
             this.lblClock.AutoSize = true;
-            this.lblClock.Font = new System.Drawing.Font("Microsoft Sans Serif", 135.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblClock.Location = new System.Drawing.Point(-25, 105);
+            this.lblClock.Font = new System.Drawing.Font("Microsoft Sans Serif", 300F);
+            this.lblClock.Location = new System.Drawing.Point(66, 173);
             this.lblClock.Name = "lblClock";
-            this.lblClock.Size = new System.Drawing.Size(793, 205);
+            this.lblClock.Size = new System.Drawing.Size(1744, 453);
             this.lblClock.TabIndex = 2;
             this.lblClock.Text = "00:00:00";
             // 
             // lblPS
             // 
             this.lblPS.AutoSize = true;
-            this.lblPS.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPS.Location = new System.Drawing.Point(12, 9);
+            this.lblPS.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPS.Location = new System.Drawing.Point(12, 28);
             this.lblPS.Name = "lblPS";
-            this.lblPS.Size = new System.Drawing.Size(399, 42);
+            this.lblPS.Size = new System.Drawing.Size(1026, 108);
             this.lblPS.TabIndex = 8;
             this.lblPS.Text = "PRODUCTION STATE";
             // 
             // lblPartID
             // 
             this.lblPartID.AutoSize = true;
-            this.lblPartID.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPartID.Location = new System.Drawing.Point(537, 9);
+            this.lblPartID.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblPartID.Location = new System.Drawing.Point(1320, 9);
             this.lblPartID.Name = "lblPartID";
-            this.lblPartID.Size = new System.Drawing.Size(185, 42);
+            this.lblPartID.Size = new System.Drawing.Size(476, 108);
             this.lblPartID.TabIndex = 9;
             this.lblPartID.Text = "PART ID#";
-            // 
-            // lblHr
-            // 
-            this.lblHr.AutoSize = true;
-            this.lblHr.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblHr.Location = new System.Drawing.Point(90, 105);
-            this.lblHr.Name = "lblHr";
-            this.lblHr.Size = new System.Drawing.Size(47, 29);
-            this.lblHr.TabIndex = 10;
-            this.lblHr.Text = "HR";
-            // 
-            // lblMin
-            // 
-            this.lblMin.AutoSize = true;
-            this.lblMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblMin.Location = new System.Drawing.Point(339, 105);
-            this.lblMin.Name = "lblMin";
-            this.lblMin.Size = new System.Drawing.Size(57, 29);
-            this.lblMin.TabIndex = 11;
-            this.lblMin.Text = "MIN";
-            // 
-            // lblSec
-            // 
-            this.lblSec.AutoSize = true;
-            this.lblSec.Font = new System.Drawing.Font("Microsoft Sans Serif", 18F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblSec.Location = new System.Drawing.Point(587, 105);
-            this.lblSec.Name = "lblSec";
-            this.lblSec.Size = new System.Drawing.Size(62, 29);
-            this.lblSec.TabIndex = 12;
-            this.lblSec.Text = "SEC";
             // 
             // lblTime
             // 
             this.lblTime.AutoSize = true;
-            this.lblTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 27.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTime.Location = new System.Drawing.Point(12, 366);
+            this.lblTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblTime.Location = new System.Drawing.Point(67, 866);
             this.lblTime.Name = "lblTime";
-            this.lblTime.Size = new System.Drawing.Size(106, 42);
+            this.lblTime.Size = new System.Drawing.Size(275, 108);
             this.lblTime.TabIndex = 13;
             this.lblTime.Text = "TIME";
+            // 
+            // btnHrInc
+            // 
+            this.btnHrInc.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHrInc.Location = new System.Drawing.Point(167, 41);
+            this.btnHrInc.Name = "btnHrInc";
+            this.btnHrInc.Size = new System.Drawing.Size(409, 118);
+            this.btnHrInc.TabIndex = 14;
+            this.btnHrInc.Text = "+";
+            this.btnHrInc.UseVisualStyleBackColor = true;
+            this.btnHrInc.Click += new System.EventHandler(this.btnHrInc_Click);
+            // 
+            // btnHrDec
+            // 
+            this.btnHrDec.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHrDec.Location = new System.Drawing.Point(167, 578);
+            this.btnHrDec.Name = "btnHrDec";
+            this.btnHrDec.Size = new System.Drawing.Size(409, 118);
+            this.btnHrDec.TabIndex = 15;
+            this.btnHrDec.Text = "-";
+            this.btnHrDec.UseVisualStyleBackColor = true;
+            this.btnHrDec.Click += new System.EventHandler(this.btnHrDec_Click);
+            // 
+            // btnMinDec
+            // 
+            this.btnMinDec.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnMinDec.Location = new System.Drawing.Point(687, 578);
+            this.btnMinDec.Name = "btnMinDec";
+            this.btnMinDec.Size = new System.Drawing.Size(409, 118);
+            this.btnMinDec.TabIndex = 17;
+            this.btnMinDec.Text = "-";
+            this.btnMinDec.UseVisualStyleBackColor = true;
+            this.btnMinDec.Click += new System.EventHandler(this.btnMinDec_Click);
+            // 
+            // btnMinInc
+            // 
+            this.btnMinInc.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnMinInc.Location = new System.Drawing.Point(687, 41);
+            this.btnMinInc.Name = "btnMinInc";
+            this.btnMinInc.Size = new System.Drawing.Size(409, 118);
+            this.btnMinInc.TabIndex = 16;
+            this.btnMinInc.Text = "+";
+            this.btnMinInc.UseVisualStyleBackColor = true;
+            this.btnMinInc.Click += new System.EventHandler(this.btnMinInc_Click);
+            // 
+            // btnSecDec
+            // 
+            this.btnSecDec.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSecDec.Location = new System.Drawing.Point(1224, 578);
+            this.btnSecDec.Name = "btnSecDec";
+            this.btnSecDec.Size = new System.Drawing.Size(409, 118);
+            this.btnSecDec.TabIndex = 19;
+            this.btnSecDec.Text = "-";
+            this.btnSecDec.UseVisualStyleBackColor = true;
+            this.btnSecDec.Click += new System.EventHandler(this.btnSecDec_Click);
+            // 
+            // btnSecInc
+            // 
+            this.btnSecInc.Font = new System.Drawing.Font("Microsoft Sans Serif", 72F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnSecInc.Location = new System.Drawing.Point(1224, 41);
+            this.btnSecInc.Name = "btnSecInc";
+            this.btnSecInc.Size = new System.Drawing.Size(409, 118);
+            this.btnSecInc.TabIndex = 18;
+            this.btnSecInc.Text = "+";
+            this.btnSecInc.UseVisualStyleBackColor = true;
+            this.btnSecInc.Click += new System.EventHandler(this.btnSecInc_Click);
+            // 
+            // btnStart
+            // 
+            this.btnStart.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStart.Location = new System.Drawing.Point(618, 866);
+            this.btnStart.Name = "btnStart";
+            this.btnStart.Size = new System.Drawing.Size(263, 91);
+            this.btnStart.TabIndex = 20;
+            this.btnStart.Text = "START";
+            this.btnStart.UseVisualStyleBackColor = true;
+            this.btnStart.Click += new System.EventHandler(this.btnStart_Click);
+            // 
+            // btnStop
+            // 
+            this.btnStop.Font = new System.Drawing.Font("Microsoft Sans Serif", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStop.Location = new System.Drawing.Point(887, 866);
+            this.btnStop.Name = "btnStop";
+            this.btnStop.Size = new System.Drawing.Size(222, 91);
+            this.btnStop.TabIndex = 21;
+            this.btnStop.Text = "STOP";
+            this.btnStop.UseVisualStyleBackColor = true;
+            this.btnStop.Click += new System.EventHandler(this.btnStop_Click);
+            // 
+            // taktTimer
+            // 
+            this.taktTimer.Interval = 1000;
+            this.taktTimer.Tick += new System.EventHandler(this.taktTimer_Tick);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(734, 425);
+            this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.btnStop);
+            this.Controls.Add(this.btnStart);
+            this.Controls.Add(this.btnSecDec);
+            this.Controls.Add(this.btnSecInc);
+            this.Controls.Add(this.btnMinDec);
+            this.Controls.Add(this.btnMinInc);
+            this.Controls.Add(this.btnHrDec);
+            this.Controls.Add(this.btnHrInc);
             this.Controls.Add(this.lblTime);
-            this.Controls.Add(this.lblSec);
-            this.Controls.Add(this.lblMin);
-            this.Controls.Add(this.lblHr);
             this.Controls.Add(this.lblPartID);
             this.Controls.Add(this.lblPS);
             this.Controls.Add(this.lblClock);
-            this.Controls.Add(this.cbWC);
             this.Controls.Add(this.lblWC);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -162,14 +225,19 @@ namespace VorneAPITest
         #endregion
         private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.Label lblWC;
-        private System.Windows.Forms.ComboBox cbWC;
         private System.Windows.Forms.Label lblClock;
         private System.Windows.Forms.Label lblPS;
         private System.Windows.Forms.Label lblPartID;
-        private System.Windows.Forms.Label lblHr;
-        private System.Windows.Forms.Label lblMin;
-        private System.Windows.Forms.Label lblSec;
         private System.Windows.Forms.Label lblTime;
+        private System.Windows.Forms.Button btnHrInc;
+        private System.Windows.Forms.Button btnHrDec;
+        private System.Windows.Forms.Button btnMinDec;
+        private System.Windows.Forms.Button btnMinInc;
+        private System.Windows.Forms.Button btnSecDec;
+        private System.Windows.Forms.Button btnSecInc;
+        private System.Windows.Forms.Button btnStart;
+        private System.Windows.Forms.Button btnStop;
+        private System.Windows.Forms.Timer taktTimer;
     }
 }
 
