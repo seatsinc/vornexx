@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <asmv1:assembly xsi:schemaLocation="urn:schemas-microsoft-com:asm.v1 assembly.adaptive.xsd" manifestVersion="1.0" xmlns:asmv1="urn:schemas-microsoft-com:asm.v1" xmlns="urn:schemas-microsoft-com:asm.v2" xmlns:asmv2="urn:schemas-microsoft-com:asm.v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:co.v1="urn:schemas-microsoft-com:clickonce.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" xmlns:dsig="http://www.w3.org/2000/09/xmldsig#" xmlns:co.v2="urn:schemas-microsoft-com:clickonce.v2">
-  <asmv1:assemblyIdentity name="VorneAPITest.exe" version="1.0.0.7" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
+  <asmv1:assemblyIdentity name="VorneAPITestC.exe" version="1.0.0.3" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
   <application />
   <entryPoint>
-    <assemblyIdentity name="VorneAPITest" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
-    <commandLine file="VorneAPITest.exe" parameters="" />
+    <assemblyIdentity name="VorneAPITestC" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+    <commandLine file="VorneAPITestC.exe" parameters="" />
   </entryPoint>
   <trustInfo>
     <security>
@@ -54,27 +54,27 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITest.exe" size="20920">
-      <assemblyIdentity name="VorneAPITest" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITestC.exe" size="12728">
+      <assemblyIdentity name="VorneAPITestC" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>D4pB0taBPzY9l2sA3LFjMXe7wYAux4fSdZgcAe5kOrU=</dsig:DigestValue>
+        <dsig:DigestValue>eQM/N4jXCctvtzYrPejZMtOP6NDW+OkD/QFEJAvt7yw=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
-  <file name="resources\audio\BEEP.wav" size="94692">
+  <file name="resources\audio\BEEP.wav" size="109624">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>V8FHRLA7zqk+MIFcvdFB91SQQLFzZuawpRlGnVFR+EY=</dsig:DigestValue>
+      <dsig:DigestValue>9KuLAibIz+w6NVNiM0d+KQjrFDJsgpcJy6wlsvVEUiQ=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="VorneAPITest.exe.config" size="189">
+  <file name="VorneAPITestC.exe.config" size="189">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />

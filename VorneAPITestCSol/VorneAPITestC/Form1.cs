@@ -20,8 +20,10 @@ namespace VorneAPITestC
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
 
+        // SERVERIP 127.0.0.1 if on local computer
+        // else the ip address of the target computer
         const string SERVERIP = "127.0.0.1";
-        const string WCNAME = "3920";
+        const string WCNAME = "3915";
         const int SERVERPORT = 50010;
 
         const int ROLLTIME = 10;
@@ -83,14 +85,14 @@ namespace VorneAPITestC
                 this.lblPartID.Text = message.pID;
                 this.lblClock.Text = this.clockFromSec(message.tt);
 
-                if (message.tt < ROLLTIME && message.color == "GRAY")
+                if (message.tt < ROLLTIME && message.color == "WHITE")
                     this.lblPS.Text = "ROLL!";
                 else
                     this.lblPS.Text = message.ps;
 
                 this.BackColor = this.colorFromPS(message.color);
 
-                if (message.tt == 0 && message.color == "GRAY")
+                if (message.tt == 0 && message.color == "WHITE")
                 {
                     SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
                     sp.Play();
@@ -109,8 +111,9 @@ namespace VorneAPITestC
                 this.lblPS.Text = "SERVER OFFLINE";
                 this.lblWC.Text = WCNAME;
                 this.lblClock.Text = "";
-
-                this.BackColor = System.Drawing.Color.LightGray;
+                
+                // light gray representing color white because gray is not visible
+                this.BackColor = System.Drawing.Color.DarkGray;
             }
         }
 
@@ -132,9 +135,13 @@ namespace VorneAPITestC
             {
                 return System.Drawing.Color.DeepSkyBlue;
             }
-            else if (ps == "GRAY")
+            else if (ps == "WHITE")
             {
                 return System.Drawing.Color.LightGray;
+            }
+            else if (ps == "BLACK")
+            {
+                return System.Drawing.Color.DarkGray;
             }
             else
             {

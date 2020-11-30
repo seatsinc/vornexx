@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Media;
 using System.Net.Sockets;
 using System.Net;
+using System.IO.Ports;
 
 
 namespace VorneAPITest
@@ -22,12 +23,16 @@ namespace VorneAPITest
         const int BUFFERSIZE = 1024 * 1024;
         const int ROLLTIME = 10;
 
+        // count for timer ticks
+        int timerTicks = 0;
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.13";
-        const string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
-        readonly IPAddress SERVERIP = IPAddress.Loopback;
+        // ipaddress IPAddress.Any if deploying
+        // ...should be IPAddress.Loopback if on local computer
+        readonly IPAddress SERVERIP = IPAddress.Any;
         const int SERVERPORT = 50010;
 
         // keeps track of the production state 
@@ -61,6 +66,9 @@ namespace VorneAPITest
             this.partID = null;
             this.productionState = null;
 
+
+            // makes sure the lights turn off if the program closes
+            Application.ApplicationExit += new EventHandler(this.OnApplicationExit);
 
 
             this.lblWC.Text = WCNAME;
@@ -109,11 +117,30 @@ namespace VorneAPITest
 
         }
 
+        private void OnApplicationExit(object sender, EventArgs e)
+            // turns lights off when the program exits
+        {
+            Console.WriteLine("asdfasdfasdf");
+            try
+            {
+                SerialPort p = new SerialPort(SerialPort.GetPortNames()[0], 9600);
+
+                p.Open();
+                p.Write("BLACK");
+                p.Close();
+
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("*****" + exc.ToString());
+            }
+        }
+
         private string getColor()
         {
             if (this.stopped == false && this.tt < ROLLTIME)
             {
-                return "GRAY";
+                return "WHITE";
             }  
             else if (this.productionState == "RUNNING")
             {
@@ -127,9 +154,15 @@ namespace VorneAPITest
             {
                 return "YELLOW";
             }
-            else
+            else if (this.productionState == "BREAK"
+                || this.productionState == "MEETING"
+                || this.productionState == "MAINTENANCE"
+                || this.productionState == "DETECTING STATE")
             {
                 return "BLUE";
+            }
+            {
+                return "BLACK";
             }
         }
 
@@ -151,9 +184,13 @@ namespace VorneAPITest
             {
                 return System.Drawing.Color.DeepSkyBlue;
             }
-            else if (ps == "GRAY")
+            else if (ps == "WHITE")
             {
                 return System.Drawing.Color.LightGray;
+            }
+            else if (ps == "BLACK")
+            {
+                return System.Drawing.Color.DarkGray;
             }
             else
             {
@@ -296,6 +333,8 @@ namespace VorneAPITest
 
             this.lblClock.Text = this.clockFromSec(this.tt);
 
+            
+
         }
 
         private void btnStart_Click(object sender, EventArgs e)
@@ -427,9 +466,39 @@ namespace VorneAPITest
 
         }
 
+        private void updateLights()
+        {
+            try
+            {
+                SerialPort p = new SerialPort(SerialPort.GetPortNames()[0], 9600);
+
+                p.Open();
+                p.Write(this.getColor().ToString());
+                p.Close();
+
+                
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("*****" + exc.ToString());
+            }
+        }
+
         private void timer_Tick(object sender, EventArgs e)
         {
             this.updateHUD();
+            
+            if (this.timerTicks > 5)
+            {
+                this.updateLights();
+                this.timerTicks = 0;
+            }
+            else
+            {
+                this.timerTicks += 1;
+            }
+
+
         }
 
        
