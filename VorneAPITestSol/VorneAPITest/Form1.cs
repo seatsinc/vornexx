@@ -169,6 +169,7 @@ namespace VorneAPITest
             {
                 return "BLUE";
             }
+            else
             {
                 return "BLACK";
             }
@@ -215,14 +216,11 @@ namespace VorneAPITest
             {
                 return System.Drawing.Color.DeepSkyBlue;
             }
-            else if (ps == "WHITE" || ps == "BLACK")
+            else
             {
                 return System.Drawing.Color.LightGray;
             }
-            else
-            {
-                return System.Drawing.Color.Black;
-            }
+            
 
         }
 

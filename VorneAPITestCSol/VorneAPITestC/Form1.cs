@@ -85,14 +85,14 @@ namespace VorneAPITestC
                 this.lblPartID.Text = message.pID;
                 this.lblClock.Text = this.clockFromSec(message.tt);
 
-                if (message.tt < ROLLTIME && message.color == "WHITE")
+                if (message.tt < ROLLTIME && message.color == "BLACK")
                     this.lblPS.Text = "ROLL!";
                 else
                     this.lblPS.Text = message.ps;
 
                 this.BackColor = this.colorFromPS(message.color);
 
-                if (message.tt == 0 && message.color == "WHITE")
+                if (message.tt == 0 && message.color == "BLACK")
                 {
                     SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
                     sp.Play();
@@ -112,8 +112,8 @@ namespace VorneAPITestC
                 this.lblWC.Text = WCNAME;
                 this.lblClock.Text = "";
                 
-                // light gray representing color white because gray is not visible
-                this.BackColor = System.Drawing.Color.DarkGray;
+
+                this.BackColor = System.Drawing.Color.LightGray;
             }
         }
 
@@ -135,17 +135,9 @@ namespace VorneAPITestC
             {
                 return System.Drawing.Color.DeepSkyBlue;
             }
-            else if (ps == "WHITE")
-            {
-                return System.Drawing.Color.LightGray;
-            }
-            else if (ps == "BLACK")
-            {
-                return System.Drawing.Color.DarkGray;
-            }
             else
             {
-                return System.Drawing.Color.Black;
+                return System.Drawing.Color.LightGray;
             }
 
         }
