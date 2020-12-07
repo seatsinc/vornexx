@@ -23,7 +23,7 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         const string SERVERIP = "127.0.0.1";
-        const string WCNAME = "3915";
+        const string WCNAME = "3910";
         const int SERVERPORT = 50010;
 
         const int ROLLTIME = 10;

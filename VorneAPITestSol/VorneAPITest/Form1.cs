@@ -15,20 +15,22 @@ using System.Net;
 using System.IO.Ports;
 
 
+
 namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
+        
+
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
         const int ROLLTIME = 10;
 
-        // count for timer ticks
-        int timerTicks = 0;
+        
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.14";
+        const string WCNAME = "3910";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -44,6 +46,7 @@ namespace VorneAPITest
         private int hour, min, sec, tt;
 
         private bool stopped = true;
+
 
 
         // server end point and listener
@@ -103,6 +106,22 @@ namespace VorneAPITest
             this.btnStart.Location = new Point((wa.Right / 2) - this.btnStart.Width, wa.Bottom - this.btnStart.Height - 20);
             this.btnStop.Location = new Point(wa.Right / 2, wa.Bottom - this.btnStop.Height - 20);
 
+            this.lblPort.Location = new Point((wa.Right / 2) - this.lblPort.Width, wa.Top + 20);
+            this.cbPorts.Location = new Point((wa.Right / 2), wa.Top + 20);
+            
+
+            // populate ports in combo box
+            this.populatePorts();
+
+            if (this.cbPorts.SelectedItem == null)
+            {
+                MessageBox.Show("Error: No serial ports detected. Plug in ports and restart.");
+            }
+            
+
+
+            
+
             // make it so the application will always be on top
             this.BringToFront();
             this.TopMost = true;
@@ -114,33 +133,23 @@ namespace VorneAPITest
 
 
             timer.Start();
+            lightTimer.Start();
 
         }
 
         private void OnApplicationExit(object sender, EventArgs e)
             // turns lights off when the program exits
         {
-            Console.WriteLine("asdfasdfasdf");
-            try
-            {
-                SerialPort p = new SerialPort(SerialPort.GetPortNames()[0], 9600);
-
-                p.Open();
-                p.Write("BLACK");
-                p.Close();
-
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine("*****" + exc.ToString());
-            }
+            this.changeColor("BLACK");
         }
 
         private string getColor()
         {
+            this.productionState = Util.replAwBStr(this.productionState, '_', ' ');
+
             if (this.stopped == false && this.tt < ROLLTIME)
             {
-                return "WHITE";
+                return "BLACK";
             }  
             else if (this.productionState == "RUNNING")
             {
@@ -156,13 +165,35 @@ namespace VorneAPITest
             }
             else if (this.productionState == "BREAK"
                 || this.productionState == "MEETING"
-                || this.productionState == "MAINTENANCE"
                 || this.productionState == "DETECTING STATE")
             {
                 return "BLUE";
             }
             {
                 return "BLACK";
+            }
+        }
+
+        private void changeColor(string color)
+        {
+
+            if (this.cbPorts.SelectedItem == null)
+            {
+                return;
+            }
+
+            try
+            {
+                SerialPort p = new SerialPort(this.cbPorts.SelectedItem.ToString(), 9600);
+
+                p.Open();
+                p.Write(color);
+                p.Close();
+
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
             }
         }
 
@@ -184,19 +215,33 @@ namespace VorneAPITest
             {
                 return System.Drawing.Color.DeepSkyBlue;
             }
-            else if (ps == "WHITE")
+            else if (ps == "WHITE" || ps == "BLACK")
             {
                 return System.Drawing.Color.LightGray;
-            }
-            else if (ps == "BLACK")
-            {
-                return System.Drawing.Color.DarkGray;
             }
             else
             {
                 return System.Drawing.Color.Black;
             }
 
+        }
+
+        private void populatePorts()
+        {
+
+            try
+            {
+
+                foreach (string portName in SerialPort.GetPortNames())
+                {
+                    this.cbPorts.Items.Add(portName);
+                    this.cbPorts.SelectedIndex = 0;
+                }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
         }
 
 
@@ -318,10 +363,7 @@ namespace VorneAPITest
             this.lblClock.Text = this.clockFromSec(this.tt);
         }
 
-        private void replyClient()
-        {
-
-        }
+        
 
         private void taktTimer_Tick(object sender, EventArgs e)
         { 
@@ -333,6 +375,7 @@ namespace VorneAPITest
 
             this.lblClock.Text = this.clockFromSec(this.tt);
 
+            
             
 
         }
@@ -388,6 +431,16 @@ namespace VorneAPITest
         private int calcSec(int hour, int min, int sec)
         {
             return (hour * 3600) + (min * 60) + sec;
+        }
+
+        private void lightTimer_Tick(object sender, EventArgs e)
+        {
+            this.changeColor(this.getColor());
+        }
+
+        private void cbPorts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+           
         }
 
         private void updateHUD()
@@ -460,45 +513,18 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                
+                Console.WriteLine(exc.ToString());
             }
 
+          
 
+            
         }
 
-        private void updateLights()
-        {
-            try
-            {
-                SerialPort p = new SerialPort(SerialPort.GetPortNames()[0], 9600);
-
-                p.Open();
-                p.Write(this.getColor().ToString());
-                p.Close();
-
-                
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine("*****" + exc.ToString());
-            }
-        }
 
         private void timer_Tick(object sender, EventArgs e)
         {
             this.updateHUD();
-            
-            if (this.timerTicks > 5)
-            {
-                this.updateLights();
-                this.timerTicks = 0;
-            }
-            else
-            {
-                this.timerTicks += 1;
-            }
-
-
         }
 
        
