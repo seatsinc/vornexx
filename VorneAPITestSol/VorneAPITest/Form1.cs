@@ -29,8 +29,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.13";
-        const string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -171,7 +171,7 @@ namespace VorneAPITest
             }
             else
             {
-                return "BLACK";
+                return "BLACK*";
             }
         }
 
@@ -188,6 +188,12 @@ namespace VorneAPITest
                 SerialPort p = new SerialPort(this.cbPorts.SelectedItem.ToString(), 9600);
 
                 p.Open();
+
+                if (color == "BLACK*")
+                {
+                    color = "BLACK";
+                }
+
                 p.Write(color);
                 p.Close();
 
