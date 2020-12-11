@@ -13,6 +13,7 @@ using System.Media;
 using System.Net.Sockets;
 using System.Net;
 using System.IO.Ports;
+using System.Threading;
 
 
 
@@ -38,8 +39,9 @@ namespace VorneAPITest
         const int SERVERPORT = 50010;
 
         // keeps track of the production state 
-        private string productionState;
-        private string partID;
+        private string ps; // production state
+        private string pID; // part id
+        private string psR; // process state reason
 
         // hour, min, sec are what the user has set on the time
         // tt stands for takt timer and represents the takt timer going down in seconds
@@ -66,8 +68,8 @@ namespace VorneAPITest
         private void Form1_Load(object sender, EventArgs e)
         {
             // initialize partID and productionState
-            this.partID = null;
-            this.productionState = null;
+            this.pID = "NA";
+            this.ps = "NA";
 
 
             // makes sure the lights turn off if the program closes
@@ -82,7 +84,7 @@ namespace VorneAPITest
            
             
 
-            // make it so the screen is in the bottom right corner
+            // make it so the screen full screen
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Location = new Point(wa.Left, wa.Top);
             this.Width = wa.Width;
@@ -129,12 +131,73 @@ namespace VorneAPITest
             // initialize server enpoint and listenter
             this.ep = new IPEndPoint(SERVERIP, SERVERPORT);
             this.listener = new TcpListener(ep);
-            listener.Start(); // Start listening
+            this.listener.Start(); // Start listening
 
+
+            
+            // listening loop
+            Thread listener = new Thread(this.communicate);
+            listener.Start();
 
             timer.Start();
             lightTimer.Start();
 
+        }
+
+        private void communicate()
+        {
+            while (true)
+            {
+
+                // vorne communication
+                RestClient client = new RestClient();
+
+
+                // make requests to vorne
+                string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
+                string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
+
+
+
+                // deserialize objects
+                PSActiveNS.PSActive psActive = JsonConvert.DeserializeObject<PSActiveNS.PSActive>(requestPS);
+                PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
+
+                this.pID = partRun.data.part_id;
+                this.psR = psActive.data.process_state_reason.ToUpper();
+                
+
+                this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
+
+
+
+                // server listening for clients' requests
+
+                try
+                {
+                    byte[] buffer = new byte[BUFFERSIZE];
+
+                    /* Can only proceed from here
+                        * if a client makes a request to our application.
+                        * Once receives a request, should proceed from this line.
+                        */
+                    TcpClient c = listener.AcceptTcpClient();
+
+                    // Reads the bytes sent from the client
+                    c.GetStream().Read(buffer, 0, BUFFERSIZE);
+
+                    // send message back to client
+                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                    byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+                    c.GetStream().Write(messageBytes, 0, messageBytes.Length);
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
+
+
+            }
         }
 
         private void OnApplicationExit(object sender, EventArgs e)
@@ -143,35 +206,37 @@ namespace VorneAPITest
             this.changeColor("BLACK");
         }
 
+       
+
         private string getColor()
         {
-            this.productionState = Util.replAwBStr(this.productionState, '_', ' ');
+            this.ps = Util.replAwBStr(this.ps, '_', ' ');
 
             if (this.stopped == false && this.tt < ROLLTIME)
             {
                 return "BLACK";
             }  
-            else if (this.productionState == "RUNNING")
+            else if (this.ps == "RUNNING")
             {
                 return "GREEN";
             }
-            else if (this.productionState == "DOWN")
+            else if (this.ps == "DOWN")
             {
                 return "RED";
             }
-            else if (this.productionState == "CHANGEOVER")
+            else if (this.ps == "CHANGEOVER")
             {
                 return "YELLOW";
             }
-            else if (this.productionState == "BREAK"
-                || this.productionState == "MEETING"
-                || this.productionState == "DETECTING STATE")
+            else if (this.ps == "BREAK"
+                || this.ps == "MEETING"
+                || this.ps == "DETECTING STATE")
             {
                 return "BLUE";
             }
             else
             {
-                return "BLACK*";
+                return "BLACK*"; // lights off but not during takt timer
             }
         }
 
@@ -450,77 +515,28 @@ namespace VorneAPITest
         private void updateHUD()
         {
 
-            
 
-            RestClient client = new RestClient();
-
-
-            // make requests to vorne
-            string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
-            string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
-            
-
-
-            // deserialize objects
-            PSActiveNS.PSActive psActive = JsonConvert.DeserializeObject<PSActiveNS.PSActive>(requestPS);
-            PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
-
-            this.partID = partRun.data.part_id;
-
-            // update HUD
-            
-
-            this.productionState = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
 
             if (this.tt < ROLLTIME && this.stopped == false)
                 this.lblPS.Text = "ROLL!";
             else
-                this.lblPS.Text = this.productionState;
+                this.lblPS.Text = this.ps;
 
-            this.lblPartID.Text = partRun.data.part_id.ToUpper();
+            this.lblPartID.Text = this.pID;
 
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
 
-            if (this.productionState == "DOWN")
+            if (this.ps == "DOWN")
             {
                 // special case
-                string downReason = psActive.data.process_state_reason.ToUpper();
+                string downReason = this.psR;
 
                 this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
 
             }
 
-            
-
             this.BackColor = this.colorFromPS(this.getColor());
-
-            // server listening for clients' requests
-
-            try
-            {
-                byte[] buffer = new byte[BUFFERSIZE];
-
-                /* Can only proceed from here
-                    * if a client makes a request to our application.
-                    * Once receives a request, should proceed from this line.
-                    */
-                TcpClient c = listener.AcceptTcpClient();
-
-                // Reads the bytes sent from the client
-                c.GetStream().Read(buffer, 0, BUFFERSIZE);
-
-                // send message back to client
-                Message message = new Message(this.productionState, this.getColor(), this.partID, this.tt);
-                byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
-                c.GetStream().Write(messageBytes, 0, messageBytes.Length);
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc.ToString());
-            }
-
-          
 
             
         }

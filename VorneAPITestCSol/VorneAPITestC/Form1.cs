@@ -12,6 +12,8 @@ using System.Net.Sockets;
 using System.Media;
 using System.Net;
 
+using System.Threading;
+
 
 namespace VorneAPITestC
 {
@@ -22,13 +24,19 @@ namespace VorneAPITestC
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
-        const string SERVERIP = "10.119.36.34";
-        const string WCNAME = "3910";
+        const string SERVERIP = "127.0.0.1";
+        const string WCNAME = "3915";
         const int SERVERPORT = 50010;
 
         const int ROLLTIME = 10;
 
         
+        public string ps;
+        public string color;
+        public string pID;
+        public int tt;
+
+
 
 
         public Form1()
@@ -55,66 +63,79 @@ namespace VorneAPITestC
             this.BringToFront();
             this.TopMost = true;
 
+            Thread listener = new Thread(this.communicate);
+            listener.Start();
+
             timer.Start();
 
         }
 
-        
+        private void communicate()
+        {
+            while (true)
+            {
+                try
+                {
+                    // connect to the server
+                    TcpClient client = new TcpClient(SERVERIP, SERVERPORT);
+                    NetworkStream stream = client.GetStream();
+
+                    // send message to the server
+                    byte[] writeBytes = Encoding.Unicode.GetBytes("Please send us production state, part id, and takt time, thank you.");
+                    stream.Write(writeBytes, 0, writeBytes.Length);
+
+
+                    // receive message from the server
+                    byte[] readBytes = new byte[BUFFERSIZE];
+                    stream.Read(readBytes, 0, readBytes.Length);
+                    Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
+
+                    this.pID = message.pID;
+                    this.tt = message.tt;
+                    this.color = message.color;
+                    this.ps = message.ps;
+
+                    // clean up
+                    stream.Dispose();
+                    client.Close();
+                }
+                catch (Exception exc)
+                {
+
+                    this.pID = "";
+                    this.ps = "SERVER OFFLINE";
+                    this.color = "BLACK*";
+                    this.tt = 0;
+
+                }
+            }
+
+        }
 
         private void timer_Tick(object sender, EventArgs e)
         {
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
-            try
-            {
-                // connect to the server
-                TcpClient client = new TcpClient(SERVERIP, SERVERPORT);
-                NetworkStream stream = client.GetStream();
-
-                // send message to the server
-                byte[] writeBytes = Encoding.Unicode.GetBytes("Please send us production state, part id, and takt time, thank you.");
-                stream.Write(writeBytes, 0, writeBytes.Length);
-
-
-                // receive message from the server
-                byte[] readBytes = new byte[BUFFERSIZE];
-                stream.Read(readBytes, 0, readBytes.Length);
-                Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
-
-
-                this.lblPartID.Text = message.pID;
-                this.lblClock.Text = this.clockFromSec(message.tt);
-
-                if (message.tt < ROLLTIME && message.color == "BLACK")
-                    this.lblPS.Text = "ROLL!";
-                else
-                    this.lblPS.Text = message.ps;
-
-                this.BackColor = this.colorFromPS(message.color);
-
-                if (message.tt == 0 && message.color == "BLACK")
-                {
-                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-                    sp.Play();
-                }
-
-                // clean up
-                stream.Dispose();
-                client.Close();
-
-            }
-            catch (Exception exc)
-            {
-                
-
-                this.lblPartID.Text = "";
-                this.lblPS.Text = "SERVER OFFLINE";
-                this.lblWC.Text = WCNAME;
+            this.lblPartID.Text = this.pID;
+            if (this.ps == "SERVER OFFLINE")
                 this.lblClock.Text = "";
-                
+            else
+                this.lblClock.Text = this.clockFromSec(this.tt);
 
-                this.BackColor = System.Drawing.Color.LightGray;
+            if (this.tt < ROLLTIME && this.color == "BLACK")
+                this.lblPS.Text = "ROLL!";
+            else
+                this.lblPS.Text = this.ps;
+
+            this.BackColor = this.colorFromPS(this.color);
+
+            if (this.tt == 0 && this.color == "BLACK")
+            {
+                SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
+                sp.Play();
             }
+
+              
         }
 
         private System.Drawing.Color colorFromPS(string ps)

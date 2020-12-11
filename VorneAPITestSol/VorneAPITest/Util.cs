@@ -10,6 +10,7 @@ namespace VorneAPITest
     {
         public static string replAwBStr(string s, char a, char b)
         {
+            
             string s2 = "";
 
             foreach (char c in s)
