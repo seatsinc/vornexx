@@ -139,6 +139,7 @@ namespace VorneAPITest
             
             // listening loop
             Thread listener = new Thread(this.communicate);
+            listener.IsBackground = true;
             listener.Start();
 
             timer.Start();
@@ -211,6 +212,8 @@ namespace VorneAPITest
             // turns lights off when the program exits
         {
             this.changeColor("BLACK");
+
+            Environment.Exit(Environment.ExitCode);
         }
 
        

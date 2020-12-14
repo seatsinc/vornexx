@@ -48,6 +48,8 @@ namespace VorneAPITestC
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+
             // aligning
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
@@ -66,10 +68,16 @@ namespace VorneAPITestC
             this.TopMost = true;
 
             Thread listener = new Thread(this.communicate);
+            listener.IsBackground = true;
             listener.Start();
 
             timer.Start();
 
+        }
+
+        static void OnProcessExit(object sender, EventArgs e)
+        {
+            Environment.Exit(Environment.ExitCode);
         }
 
         private void communicate()
@@ -90,11 +98,6 @@ namespace VorneAPITestC
                     // receive message from the server
                     byte[] readBytes = new byte[BUFFERSIZE];
                     stream.Read(readBytes, 0, readBytes.Length);
-
-                    Console.WriteLine(Encoding.Unicode.GetString(readBytes));
-
-
-
 
                     Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
 
