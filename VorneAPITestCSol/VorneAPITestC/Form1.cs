@@ -108,6 +108,9 @@ namespace VorneAPITestC
                     this.tt = 0;
 
                 }
+
+                // so the server does not get overloaded
+                Thread.Sleep(500);
             }
 
         }
