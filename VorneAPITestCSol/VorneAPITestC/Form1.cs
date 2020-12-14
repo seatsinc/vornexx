@@ -24,11 +24,13 @@ namespace VorneAPITestC
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
-        const string SERVERIP = "127.0.0.1";
+        const string SERVERIP = "10.119.16.56";
         const string WCNAME = "3915";
         const int SERVERPORT = 50010;
 
         const int ROLLTIME = 10;
+
+        const int QUERYINTERVAL = 250; // miliseconds
 
         
         public string ps;
@@ -88,6 +90,12 @@ namespace VorneAPITestC
                     // receive message from the server
                     byte[] readBytes = new byte[BUFFERSIZE];
                     stream.Read(readBytes, 0, readBytes.Length);
+
+                    Console.WriteLine(Encoding.Unicode.GetString(readBytes));
+
+
+
+
                     Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
 
                     this.pID = message.pID;
@@ -110,7 +118,7 @@ namespace VorneAPITestC
                 }
 
                 // so the server does not get overloaded
-                Thread.Sleep(500);
+                Thread.Sleep(QUERYINTERVAL);
             }
 
         }
