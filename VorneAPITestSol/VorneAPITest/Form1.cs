@@ -25,7 +25,9 @@ namespace VorneAPITest
 
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
-        const int ROLLTIME = 10;
+        
+        // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
+        const int ROLLDIVISOR = 10;
 
         
 
@@ -144,6 +146,11 @@ namespace VorneAPITest
 
         }
 
+        private int rollTime()
+        {
+            return this.calcSec(this.hour, this.min, this.sec) / ROLLDIVISOR;
+        }
+
         private void communicate()
         {
             while (true)
@@ -212,7 +219,7 @@ namespace VorneAPITest
         {
             this.ps = Util.replAwBStr(this.ps, '_', ' ');
 
-            if (this.stopped == false && this.tt < ROLLTIME)
+            if (this.stopped == false && this.tt < this.rollTime())
             {
                 return "BLACK";
             }  
@@ -453,9 +460,9 @@ namespace VorneAPITest
         {
             
 
-            if (this.calcSec(this.hour, this.min, this.sec) < ROLLTIME)
+            if (this.calcSec(this.hour, this.min, this.sec) < this.rollTime())
             {
-                MessageBox.Show("Error: Takt time must be greater than " + ROLLTIME.ToString() + " seconds");
+                MessageBox.Show("Error: Takt time must be greater than " + this.rollTime().ToString() + " seconds");
                 return;
             }
 
@@ -517,7 +524,7 @@ namespace VorneAPITest
 
 
 
-            if (this.tt < ROLLTIME && this.stopped == false)
+            if (this.tt < this.rollTime() && this.stopped == false)
                 this.lblPS.Text = "ROLL!";
             else
                 this.lblPS.Text = this.ps;
