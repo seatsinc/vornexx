@@ -30,7 +30,7 @@ namespace VorneAPITestC
 
         const int ROLLTIME = 10;
 
-        const int QUERYINTERVAL = 250; // miliseconds
+        const int QUERYINTERVAL = 50; // miliseconds
 
         
         public string ps;
@@ -38,6 +38,7 @@ namespace VorneAPITestC
         public string pID;
         public int tt;
 
+        public bool inRoll = false;
 
 
 
@@ -71,6 +72,7 @@ namespace VorneAPITestC
             listener.IsBackground = true;
             listener.Start();
 
+            
             timer.Start();
 
         }
@@ -84,44 +86,57 @@ namespace VorneAPITestC
         {
             while (true)
             {
+
                 try
                 {
                     // connect to the server
                     TcpClient client = new TcpClient(SERVERIP, SERVERPORT);
-                    NetworkStream stream = client.GetStream();
+                    
 
-                    // send message to the server
-                    byte[] writeBytes = Encoding.Unicode.GetBytes("Please send us production state, part id, and takt time, thank you.");
-                    stream.Write(writeBytes, 0, writeBytes.Length);
+                    while (true)
+                    {
+                        NetworkStream stream = client.GetStream();
+
+                        // send message to the server
+                        byte[] writeBytes = Encoding.Unicode.GetBytes("Please send us production state, part id, and takt time, thank you.");
+                        stream.Write(writeBytes, 0, writeBytes.Length);
 
 
-                    // receive message from the server
-                    byte[] readBytes = new byte[BUFFERSIZE];
-                    stream.Read(readBytes, 0, readBytes.Length);
+                        // receive message from the server
+                        byte[] readBytes = new byte[BUFFERSIZE];
+                        do
+                        {
+                            stream.Read(readBytes, 0, readBytes.Length);
+                        }
+                        while (stream.DataAvailable);
 
-                    Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
+                        Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
 
-                    this.pID = message.pID;
-                    this.tt = message.tt;
-                    this.color = message.color;
-                    this.ps = message.ps;
+                        this.pID = message.pID;
+                        this.tt = message.tt;
+                        this.color = message.color;
+                        this.ps = message.ps;
 
-                    // clean up
-                    stream.Dispose();
-                    client.Close();
+                        
+                        Thread.Sleep(QUERYINTERVAL);
+
+                    }
+
+                    
                 }
                 catch (Exception exc)
                 {
 
                     this.pID = "";
-                    this.ps = "SERVER OFFLINE";
+                    this.ps = "CONNECTING...";
                     this.color = "BLACK*";
                     this.tt = 0;
 
                 }
 
-                // so the server does not get overloaded
-                Thread.Sleep(QUERYINTERVAL);
+                
+
+                
             }
 
         }
@@ -143,13 +158,22 @@ namespace VorneAPITestC
 
             this.BackColor = this.colorFromPS(this.color);
 
-            if (this.tt == 0 && this.color == "BLACK")
+
+
+            if (this.color != "BLACK" && this.inRoll == true)
             {
                 SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
                 sp.Play();
             }
 
-              
+            if (this.color == "BLACK")
+            {
+                this.inRoll = true;
+            }
+            else
+            {
+                this.inRoll = false;
+            }
         }
 
         private System.Drawing.Color colorFromPS(string ps)

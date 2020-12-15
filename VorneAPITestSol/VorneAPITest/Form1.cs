@@ -51,11 +51,11 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
+        private List<TcpClient> clients = new List<TcpClient>();
 
 
-        // server end point and listener
-        IPEndPoint ep;
-        TcpListener listener;
+
+        
 
 
         
@@ -112,6 +112,8 @@ namespace VorneAPITest
 
             this.lblPort.Location = new Point((wa.Right / 2) - this.lblPort.Width, wa.Top + 20);
             this.cbPorts.Location = new Point((wa.Right / 2), wa.Top + 20);
+
+            this.lblClients.Location = new Point(this.cbPorts.Left, this.cbPorts.Bottom);
             
 
             // populate ports in combo box
@@ -123,24 +125,27 @@ namespace VorneAPITest
             }
             
 
-
+            
             
 
             // make it so the application will always be on top
             this.BringToFront();
             this.TopMost = true;
 
-            // initialize server enpoint and listenter
-            this.ep = new IPEndPoint(SERVERIP, SERVERPORT);
-            this.listener = new TcpListener(ep);
-            this.listener.Start(); // Start listening
 
+
+            // listening loop
+            Thread accepter = new Thread(this.accept);
+            accepter.IsBackground = true;
+            accepter.Start();
+
+
+            // communicating loop
+            Thread communicator = new Thread(this.communicate);
+            communicator.IsBackground = true;
+            communicator.Start();
 
             
-            // listening loop
-            Thread listener = new Thread(this.communicate);
-            listener.IsBackground = true;
-            listener.Start();
 
             timer.Start();
             lightTimer.Start();
@@ -150,6 +155,33 @@ namespace VorneAPITest
         private int rollTime()
         {
             return this.calcSec(this.hour, this.min, this.sec) / ROLLDIVISOR;
+        }
+
+        private void accept()
+        {
+            while (true)
+            {
+                // server end point and listener
+                IPEndPoint ep;
+                TcpListener listener;
+
+                // initialize server enpoint and listenter
+                ep = new IPEndPoint(SERVERIP, SERVERPORT);
+                listener = new TcpListener(ep);
+                listener.Start(); // Start listening
+
+                /* Can only proceed from here
+                        * if a client makes a request to our application.
+                        * Once receives a request, should proceed from this line.
+                        */
+                TcpClient temp = new TcpClient();
+                temp = listener.AcceptTcpClient();
+
+                this.clients.Add(temp);
+
+                listener.Stop();
+
+            }
         }
 
         private void communicate()
@@ -178,31 +210,38 @@ namespace VorneAPITest
                 this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
 
 
-
-                // server listening for clients' requests
-
-                try
+                // iterate through each of the clients and send message to them
+                for (int i = 0; i < this.clients.Count; ++i)
                 {
-                    byte[] buffer = new byte[BUFFERSIZE];
+                    try
+                    {
+                        byte[] buffer = new byte[BUFFERSIZE];
 
-                    /* Can only proceed from here
-                        * if a client makes a request to our application.
-                        * Once receives a request, should proceed from this line.
-                        */
-                    TcpClient c = listener.AcceptTcpClient();
+                        TcpClient c = this.clients.ElementAt<TcpClient>(i);
+                        NetworkStream stream = c.GetStream();
 
-                    // Reads the bytes sent from the client
-                    c.GetStream().Read(buffer, 0, BUFFERSIZE);
+                        do
+                        {
+                            stream.Read(buffer, 0, buffer.Length);
+                        }
+                        while (stream.DataAvailable);
+                        
 
-                    // send message back to client
-                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-                    byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
-                    c.GetStream().Write(messageBytes, 0, messageBytes.Length);
+                        // send message back to client
+                        Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                        byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+                        stream.Write(messageBytes, 0, messageBytes.Length);
+
+                    }
+                    catch (Exception e)
+                    {
+                        this.clients.RemoveAt(i);
+                    }
                 }
-                catch (Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
+
+
+
+
 
 
             }
@@ -463,9 +502,9 @@ namespace VorneAPITest
         {
             
 
-            if (this.calcSec(this.hour, this.min, this.sec) < this.rollTime())
+            if (this.calcSec(this.hour, this.min, this.sec) <= 10)
             {
-                MessageBox.Show("Error: Takt time must be greater than " + this.rollTime().ToString() + " seconds");
+                MessageBox.Show("Error: Takt time must be greater than 10 seconds");
                 return;
             }
 
@@ -547,6 +586,8 @@ namespace VorneAPITest
             }
 
             this.BackColor = this.colorFromPS(this.getColor());
+
+            this.lblClients.Text = "Clients: " + this.clients.Count.ToString();
 
             
         }

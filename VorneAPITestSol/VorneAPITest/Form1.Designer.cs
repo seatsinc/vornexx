@@ -48,6 +48,7 @@ namespace VorneAPITest
             this.cbPorts = new System.Windows.Forms.ComboBox();
             this.lblPort = new System.Windows.Forms.Label();
             this.lightTimer = new System.Windows.Forms.Timer(this.components);
+            this.lblClients = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // timer
@@ -224,11 +225,21 @@ namespace VorneAPITest
             this.lightTimer.Interval = 1500;
             this.lightTimer.Tick += new System.EventHandler(this.lightTimer_Tick);
             // 
+            // lblClients
+            // 
+            this.lblClients.AutoSize = true;
+            this.lblClients.Location = new System.Drawing.Point(25, 196);
+            this.lblClients.Name = "lblClients";
+            this.lblClients.Size = new System.Drawing.Size(48, 13);
+            this.lblClients.TabIndex = 24;
+            this.lblClients.Text = "lblClients";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.lblClients);
             this.Controls.Add(this.lblPort);
             this.Controls.Add(this.cbPorts);
             this.Controls.Add(this.btnStop);
@@ -272,6 +283,7 @@ namespace VorneAPITest
         private System.Windows.Forms.ComboBox cbPorts;
         private System.Windows.Forms.Label lblPort;
         private System.Windows.Forms.Timer lightTimer;
+        private System.Windows.Forms.Label lblClients;
     }
 }
 
