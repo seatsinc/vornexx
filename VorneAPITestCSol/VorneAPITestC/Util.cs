@@ -62,6 +62,61 @@ namespace VorneAPITestC
             return newString;
         }
 
+
+        public static string jsonMakeover(string json)
+        {
+
+            json = Util.removeWS(json);
+
+
+            // account for changeovers
+
+            List<int> leftBounds = new List<int>(), rightBounds = new List<int>(); // index of left bound the first letter and index of right bounds the second letter
+
+            int e = 1;
+
+            bool firstLB = false;
+            int lastRB = -1;
+            while (e < json.Length)
+            {
+
+                if (json[e] == '[' && json[e - 1] == '[')
+                {
+                    if (firstLB != false)
+                        json = json.Remove(e, 1);
+                    else
+                        firstLB = true;
+
+                }
+                else if (json[e] == ']' && json[e - 1] == ']')
+                {
+                    json = json.Remove(e, 1);
+                    lastRB = e;
+
+                    e--;
+                }
+
+                e++;
+
+            }
+
+
+
+            try
+            {
+                json = json.Insert(lastRB, "]");
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
+
+
+
+            return json;
+
+        }
+
         
     }
 }

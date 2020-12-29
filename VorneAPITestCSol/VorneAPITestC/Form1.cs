@@ -23,11 +23,13 @@ namespace VorneAPITestC
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
 
+        // random comment
+
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
-        const string VORNEIP = "10.119.12.14";
-        const string SERVERIP = "10.119.16.34";
-        public static string WCNAME = "3910";
+        const string VORNEIP = "10.119.12.15";
+        const string SERVERIP = "10.119.16.56";
+        public static string WCNAME = "3915";
 
         const int SERVERPORT = 50010;
 
@@ -123,6 +125,8 @@ namespace VorneAPITestC
                         
                         Thread.Sleep(QUERYINTERVAL);
 
+                        
+
                     }
 
                     
@@ -134,6 +138,8 @@ namespace VorneAPITestC
                     this.ps = "CONNECTING...";
                     this.color = "BLACK*";
                     this.tt = 0;
+
+                   
 
                 }
 

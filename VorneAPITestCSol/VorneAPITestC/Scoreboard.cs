@@ -82,65 +82,22 @@ namespace VorneAPITestC
 
             try
             {
-
+               
 
                 string shiftQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=shift&limit=15&sort=-event_id", httpVerb.GET);
+                shiftQuery = Util.jsonMakeover(shiftQuery);
+                Console.WriteLine(shiftQuery);
                 ShiftQueryNS.ShiftQuery sq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(shiftQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
-                
+
 
                 string startQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=start_time&limit=15&sort=-event_id&", httpVerb.GET);
                 ShiftQueryNS.ShiftQuery st = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(startQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-
                 string timeQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=end_time&limit=15&sort=-event_id", httpVerb.GET);
                 ShiftQueryNS.ShiftQuery tq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(timeQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-
                 string partQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=part&limit=15&sort=-event_id", httpVerb.GET);
-                partQuery = Util.removeWS(partQuery);
-
-
-                // account for changeovers
-
-                List<int> leftBounds = new List<int>(), rightBounds = new List<int>(); // index of left bound the first letter and index of right bounds the second letter
-
-                int e = 1;
-
-                bool firstLB = false;
-                int lastRB = -1;
-                while (e < partQuery.Length)
-                {
-
-                    if (partQuery[e] == '[' && partQuery[e - 1] == '[')
-                    {
-                        if (firstLB != false)
-                            partQuery = partQuery.Remove(e, 1);
-                        else
-                            firstLB = true;
-
-                    }
-                    else if (partQuery[e] == ']' && partQuery[e - 1] == ']')
-                    {
-                        partQuery = partQuery.Remove(e, 1);
-                        lastRB = e;
-
-                        e--;
-                    }
-
-                    e++;
-
-                }
-
-                try
-                {
-                    partQuery = partQuery.Insert(lastRB, "]");
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
-
-
+                partQuery = Util.jsonMakeover(partQuery);
                 ShiftQueryNS.ShiftQuery part = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(partQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string goodCountQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=good_count&limit=20&sort=-event_id", httpVerb.GET);
@@ -170,15 +127,24 @@ namespace VorneAPITestC
                 this.shift = Util.replAwBStr(sq.data.events.ElementAt<List<string>>(0).Last<string>(), '_', ' ').ToUpper();
 
 
-
-
-
-
-
                 int lines = 0;
 
-                while (sq.data.events.ElementAt<List<string>>(lines).ElementAt<string>(0) != "null")
-                    lines++;
+                bool end = false;
+
+                while (!end)
+                {
+                    end = true;
+
+                    for (int i = 0; i < sq.data.events.ElementAt<List<string>>(lines).Count; ++i)
+                    {
+                        if (sq.data.events.ElementAt<List<string>>(lines)[i] != "null")
+                            end = false;
+                    }
+
+                    if (!end)
+                        lines++;
+                }
+                    
 
 
                 // center("TIME", w), center("PART", w), center("GOOD COUNT", w), center("LABOR EFF.", w), center("OEE", w), center("AVAIL.", w), center("PERF.", w), center("QUALITY", w));
