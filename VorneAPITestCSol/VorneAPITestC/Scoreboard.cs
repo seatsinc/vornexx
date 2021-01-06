@@ -9,25 +9,30 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Threading;
 using Newtonsoft.Json;
+using System.Timers;
 
 namespace VorneAPITestC
 {
+    
+
     public partial class Scoreboard : Form
     {
+
+        private int SB_WAIT = 60;
 
         private string VORNEIP;
 
         private string shift, wc;
-        
 
         private string score;
 
+        private System.Windows.Forms.Timer timer;
         
         private List<List<List<string>>> board = new List<List<List<string>>>();
 
         private int count = 0;
 
-
+        private List<double> totalLaborHours = new List<double>();
 
         public Scoreboard(string vip, string workCenter)
         {
@@ -35,6 +40,8 @@ namespace VorneAPITestC
 
             this.VORNEIP = vip;
             this.wc = workCenter;
+
+            
         }
 
         private string center(string s, int width)
@@ -50,6 +57,8 @@ namespace VorneAPITestC
             return new string(' ', leftPadding) + s + new string(' ', rightPadding);
         }
 
+ 
+
         private void Scoreboard_Load(object sender, EventArgs e)
         {
 
@@ -60,14 +69,32 @@ namespace VorneAPITestC
             this.Height = wa.Height;
             this.Location = new Point(0, 0);
 
-
-            this.refr();
             
 
+            this.refr();
+
+
+            this.timer = new System.Windows.Forms.Timer();
+            this.timer.Interval = SB_WAIT * 1000;
+            timer.Tick += new EventHandler(this.timer_Tick);
+            timer.Start();
+            
 
         }
 
-        
+        private void timer_Tick(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+
+            this.timer.Dispose();
+
+            base.OnFormClosing(e);
+        }
+
         private List<List<List<string>>> queryScore()
         {
             
@@ -89,12 +116,17 @@ namespace VorneAPITestC
                 Console.WriteLine(shiftQuery);
                 ShiftQueryNS.ShiftQuery sq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(shiftQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
+                string lQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=labor&limit=15&sort=-event_id", httpVerb.GET);
+                ShiftQueryNS.ShiftQuery lq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(lQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-                string startQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=start_time&limit=15&sort=-event_id&", httpVerb.GET);
-                ShiftQueryNS.ShiftQuery st = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(startQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+
 
                 string timeQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=end_time&limit=15&sort=-event_id", httpVerb.GET);
                 ShiftQueryNS.ShiftQuery tq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(timeQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
+
+                string elQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=earned_labor&limit=15&sort=-event_id", httpVerb.GET);
+                ShiftQueryNS.ShiftQuery el = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(elQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string partQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=part&limit=15&sort=-event_id", httpVerb.GET);
                 partQuery = Util.jsonMakeover(partQuery);
@@ -151,6 +183,7 @@ namespace VorneAPITestC
 
                 for (int i = 0; i < lines; ++i)
                 {
+                    this.totalLaborHours.Add(0.0);
 
                     sb.Add(new List<List<string>>());
 
@@ -158,21 +191,34 @@ namespace VorneAPITestC
                         sb.ElementAt<List<List<string>>>(i).Add(new List<string>());
 
 
-                    // start time
-                    for (int j = 0; j < st.data.events.ElementAt(i).Count; ++j)
+                    // util entries
+                    // LABOR
+                    for (int j = 0; j < lq.data.events.ElementAt(i).Count; ++j)
                     {
-                        string str = st.data.events.ElementAt<List<string>>(i).ElementAt<string>(j).Substring(11, 5);
+                        string str = lq.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
+
+                        this.totalLaborHours[i] += Convert.ToDouble(str);
+                    }
+
+
+                    // SCOREBOARD ENTRIES
+
+
+                    // time
+                    for (int j = 0; j < tq.data.events.ElementAt(i).Count; ++j)
+                    {
+                        string str = tq.data.events.ElementAt<List<string>>(i).ElementAt<string>(j).Substring(11, 5);
 
                         sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(0).Add(DateTime.Parse(str).ToShortTimeString());
                     }
 
 
-                    // end time
-                    for (int j = 0; j < tq.data.events.ElementAt(i).Count; ++j)
+                    // earned labor
+                    for (int j = 0; j < el.data.events.ElementAt(i).Count; ++j)
                     {
-                        string str = tq.data.events.ElementAt<List<string>>(i).ElementAt<string>(j).Substring(11, 5);
+                        string str = el.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(1).Add(DateTime.Parse(str).ToShortTimeString());
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(1).Add(Math.Round(Convert.ToDouble(str) / 3600.0, 1).ToString());
                     }
 
 
@@ -198,7 +244,7 @@ namespace VorneAPITestC
                     {
                         string d = le.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(4).Add(Util.percentRound(d, 1) + '%');
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(4).Add(Util.percentRound(d, 1));
                     }
 
                     // oee
@@ -206,7 +252,7 @@ namespace VorneAPITestC
                     {
                         string d = oee.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(5).Add(Util.percentRound(d, 1) + '%');
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(5).Add(Util.percentRound(d, 1));
                     }
 
                     // availability
@@ -214,7 +260,7 @@ namespace VorneAPITestC
                     {
                         string d = a.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(6).Add(Util.percentRound(d, 1) + '%');
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(6).Add(Util.percentRound(d, 1));
                     }
 
                     // performance
@@ -222,7 +268,7 @@ namespace VorneAPITestC
                     {
                         string d = p.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(7).Add(Util.percentRound(d, 1) + '%');
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(7).Add(Util.percentRound(d, 1));
                     }
 
                     // quality
@@ -230,12 +276,8 @@ namespace VorneAPITestC
                     {
                         string d = q.data.events.ElementAt<List<string>>(i).ElementAt<string>(j);
 
-                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(8).Add(Util.percentRound(d, 1) + '%');
+                        sb.ElementAt<List<List<string>>>(i).ElementAt<List<string>>(8).Add(Util.percentRound(d, 1));
                     }
-
-
-
-
 
 
                 }
@@ -268,27 +310,40 @@ namespace VorneAPITestC
             this.score = "";
 
 
-            int w = 15;
+            int w = 16;
 
-            string line = "";
+            string line = "", line2 = "";
 
-            for (int i = 0; i < 144; ++i)
+            for (int i = 0; i < 152; ++i)
             {
                 line += '-';
+                line2 += '=';
             }
 
 
             this.wc = Form1.WCNAME;
 
 
-            score += DateTime.Now.ToShortDateString() + " - " + shift + " - " + wc + '\n';
+            score += DateTime.Now.ToShortDateString() + " - " + shift + " - " + wc + "\n\n";
 
-            score += string.Format("{0,0}|{1,0}|{2,0}|{3,0}|{4,0}|{5,0}|{6,0}|{7,0}|{8,0}\n", center("START TIME", w), center("END TIME", w), center("PART", w), center("GOOD COUNT", w), center("LABOR EFF.", w), center("OEE", w), center("AVAIL.", w), center("PERF.", w), center("QUALITY", w));
+            score += string.Format("{0,0}|{1,0}|{2,0}|{3,0}|{4,0}|{5,0}|{6,0}|{7,0}|{8,0}\n", center("TIME", w), center("EARNED LBR", w), center("PART", w), center("GOOD COUNT", w), center("LBR EFF", w), center("OEE", w), center("AVAIL", w), center("PERF", w), center("QUAL", w));
             score += line + '\n';
+
+            // last line computing
+
+            List<double> stdHours = new List<double>();
+            List<double> laborEfficiencies = new List<double>();
+            List<double> goodCounts = new List<double>();
+            List<double> oees = new List<double>();
+            List<double> avails = new List<double>();
+            List<double> perfs = new List<double>();
+            List<double> quals = new List<double>();
+            // last line computing end guard
 
 
             // writing the queried scorebaord to the label string
 
+            int changeovers = 0;
 
             for (int i = 0; i < this.board.Count; ++i)
             {
@@ -296,6 +351,17 @@ namespace VorneAPITestC
 
 
                 bool newLine = true;
+
+                // for the last line calculation
+                stdHours.Add(Convert.ToDouble(currentLine[1][0]));
+                goodCounts.Add(Convert.ToDouble(currentLine[3][0]));
+                laborEfficiencies.Add(Convert.ToDouble(currentLine[4][0]));
+                oees.Add(Convert.ToDouble(currentLine[5][0]));
+                avails.Add(Convert.ToDouble(currentLine[6][0]));
+                perfs.Add(Convert.ToDouble(currentLine[7][0]));
+                quals.Add(Convert.ToDouble(currentLine[8][0]));
+
+                
 
 
                 while (newLine)
@@ -306,13 +372,24 @@ namespace VorneAPITestC
                     for (int j = 0; j < currentLine.Count; ++j)
                     {
                         if (currentLine[j].Count > 1)
+                        {
+                            changeovers++;
                             newLine = true;
+                        }
 
 
                         if (currentLine[j].Count >= 1)
                         // only one element
                         {
-                            this.score += string.Format(center(currentLine[j][0], w));
+                            string element = currentLine[j][0];
+
+                            if (j >= 4)
+                                element += '%';
+
+
+                            this.score += string.Format(center(element, w));
+
+
                             currentLine[j].RemoveAt(0);
 
                         }
@@ -337,10 +414,12 @@ namespace VorneAPITestC
                     this.score += '\n';
 
                     if (newLine == false)
-                        this.score += line + '\n';
-
-
-
+                    {
+                        if (i != this.board.Count - 1)
+                            this.score += line + '\n';
+                        else
+                            this.score += line2 + '\n';
+                    }
                 }
 
 
@@ -349,26 +428,57 @@ namespace VorneAPITestC
             }
 
 
+            // COMPUTING THE LAST LINE
+
+            
+
+
+
+            // TIME, STD HOURS, PART, GOOD COUNT, LABOR EFF, OEE, AVAIL, PERF, QUAL
+
+
+
+            List<string> lastLine = new List<string>();
+            
+            
+            lastLine.Add("ACHIEVEMENTS");
+            lastLine.Add(stdHours.Sum().ToString());
+            lastLine.Add("COs: " + changeovers.ToString());
+            lastLine.Add(goodCounts.Sum().ToString());
+            lastLine.Add(Math.Round(Util.weightedAverage(laborEfficiencies, totalLaborHours), 1).ToString() + '%');
+            lastLine.Add(Math.Round(Util.weightedAverage(oees, totalLaborHours), 1).ToString() + '%');
+            lastLine.Add(Math.Round(Util.weightedAverage(avails, totalLaborHours), 1).ToString() + '%');
+            lastLine.Add(Math.Round(Util.weightedAverage(perfs, totalLaborHours), 1).ToString() + '%');
+            lastLine.Add(Math.Round(Util.weightedAverage(quals, totalLaborHours), 1).ToString() + '%');
+            
+
+
+            for (int i = 0; i < lastLine.Count; ++i)
+            {
+                this.score += string.Format(center(lastLine[i], w));
+
+                if (i < lastLine.Count - 1)
+                    this.score += '|';
+            }
+
+
+            this.score += '\n' + line2;
+
+
             this.lblScoreboard.Text = score;
 
 
             
         }
 
-        private void btnExit_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             this.Close();
         }
 
-        private void btnRefresh_Click(object sender, EventArgs e)
-        {
-            this.refr();
-        }
-
-
         private void refr()
         {
-            this.Hide();
+            
 
             this.lblScoreboard.Text = "LOADING...";
             this.board = this.queryScore();
@@ -381,7 +491,7 @@ namespace VorneAPITestC
 
             this.writeScore();
 
-            this.Show();
+            
         }
 
         

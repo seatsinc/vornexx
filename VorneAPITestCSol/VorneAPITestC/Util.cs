@@ -117,6 +117,31 @@ namespace VorneAPITestC
 
         }
 
+
+        private static double getWeight(List<double> weights, int index)
+        {
+            return weights.ElementAt<double>(index) / weights.Sum();
+        }
+
+        
+
+        public static double weightedAverage(List<double> l, List<double> weights)
+            // assumes both lists are of the same length
+        {
+            double total = 0.0;
+
+            for (int i = 0; i < l.Count; ++i)
+            {
+                total += getWeight(weights, i) * l[i];
+
+            }
+
+            return total;
+
+        }
+
+        
+
         
     }
 }

@@ -139,3 +139,22 @@ C:\Users\jbenson\Documents\cache\v7 - scoreboard\vornehud\VorneAPITestCSol\Vorne
 C:\Users\jbenson\Documents\cache\v7 - scoreboard\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.csproj.CopyComplete
 C:\Users\jbenson\Documents\cache\v7 - scoreboard\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.exe
 C:\Users\jbenson\Documents\cache\v7 - scoreboard\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.pdb
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\resources\audio\BEEP.wav
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\VorneAPITestC.exe.config
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\VorneAPITestC.exe.manifest
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\VorneAPITestC.application
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\VorneAPITestC.exe
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\VorneAPITestC.pdb
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\Newtonsoft.Json.dll
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\bin\Debug\Newtonsoft.Json.xml
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.csprojAssemblyReference.cache
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.Form1.resources
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.Properties.Resources.resources
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.Scoreboard.resources
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.csproj.GenerateResource.cache
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.csproj.CoreCompileInputs.cache
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.exe.manifest
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.application
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.csproj.CopyComplete
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.exe
+C:\Users\jbenson\Documents\cache\v8\vornehud\VorneAPITestCSol\VorneAPITestC\obj\Debug\VorneAPITestC.pdb

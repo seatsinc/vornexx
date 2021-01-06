@@ -21,7 +21,9 @@ namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
-        
+
+        private Mutex mutex = new Mutex();
+
 
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
@@ -32,8 +34,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.14";
+        const string WCNAME = "3910";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -177,7 +179,9 @@ namespace VorneAPITest
                 TcpClient temp = new TcpClient();
                 temp = listener.AcceptTcpClient();
 
+                mutex.WaitOne();
                 this.clients.Add(temp);
+                mutex.ReleaseMutex();
 
                 listener.Stop();
 
@@ -210,6 +214,7 @@ namespace VorneAPITest
                 this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
 
 
+                mutex.WaitOne();
                 // iterate through each of the clients and send message to them
                 for (int i = 0; i < this.clients.Count; ++i)
                 {
@@ -237,7 +242,9 @@ namespace VorneAPITest
                     {
                         this.clients.RemoveAt(i);
                     }
+                    
                 }
+                mutex.ReleaseMutex();
 
 
 
