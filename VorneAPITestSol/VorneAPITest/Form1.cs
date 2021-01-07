@@ -22,7 +22,6 @@ namespace VorneAPITest
     public partial class Form1 : Form
     {
 
-        private Mutex mutex = new Mutex();
 
 
         // buffer size for server client relationship
@@ -34,8 +33,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.14";
-        const string WCNAME = "3910";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -53,7 +52,7 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
-        private List<TcpClient> clients = new List<TcpClient>();
+        private LinkedList<TcpClient> clients = new LinkedList<TcpClient>();
 
 
 
@@ -179,9 +178,9 @@ namespace VorneAPITest
                 TcpClient temp = new TcpClient();
                 temp = listener.AcceptTcpClient();
 
-                mutex.WaitOne();
-                this.clients.Add(temp);
-                mutex.ReleaseMutex();
+              
+                this.clients.AddFirst(temp);
+            
 
                 listener.Stop();
 
@@ -214,15 +213,14 @@ namespace VorneAPITest
                 this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
 
 
-                mutex.WaitOne();
                 // iterate through each of the clients and send message to them
-                for (int i = 0; i < this.clients.Count; ++i)
+                for (LinkedListNode<TcpClient> node = clients.First; node != null; node = node.Next)
                 {
                     try
                     {
                         byte[] buffer = new byte[BUFFERSIZE];
 
-                        TcpClient c = this.clients.ElementAt<TcpClient>(i);
+                        TcpClient c = node.Value;
                         NetworkStream stream = c.GetStream();
 
                         do
@@ -240,17 +238,11 @@ namespace VorneAPITest
                     }
                     catch (Exception e)
                     {
-                        this.clients.RemoveAt(i);
+                        this.clients.Remove(node);
                     }
                     
                 }
-                mutex.ReleaseMutex();
-
-
-
-
-
-
+               
             }
         }
 
