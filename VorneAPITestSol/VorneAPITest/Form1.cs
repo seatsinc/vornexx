@@ -21,8 +21,7 @@ namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
-
-        private Mutex mutex = new Mutex();
+        
 
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
@@ -33,8 +32,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.14";
-        const string WCNAME = "3910";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -52,7 +51,7 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
-        private LinkedList<TcpClient> clients = new LinkedList<TcpClient>();
+        private List<TcpClient> clients = new List<TcpClient>();
 
 
 
@@ -162,34 +161,26 @@ namespace VorneAPITest
         {
             while (true)
             {
-                try
-                {
-                    // server end point and listener
-                    IPEndPoint ep;
-                    TcpListener listener;
+                // server end point and listener
+                IPEndPoint ep;
+                TcpListener listener;
 
-                    // initialize server enpoint and listenter
-                    ep = new IPEndPoint(SERVERIP, SERVERPORT);
-                    listener = new TcpListener(ep);
-                    listener.Start(); // Start listening
+                // initialize server enpoint and listenter
+                ep = new IPEndPoint(SERVERIP, SERVERPORT);
+                listener = new TcpListener(ep);
+                listener.Start(); // Start listening
 
-                    /* Can only proceed from here
-                            * if a client makes a request to our application.
-                            * Once receives a request, should proceed from this line.
-                            */
-                    TcpClient temp = new TcpClient();
-                    temp = listener.AcceptTcpClient();
+                /* Can only proceed from here
+                        * if a client makes a request to our application.
+                        * Once receives a request, should proceed from this line.
+                        */
+                TcpClient temp = new TcpClient();
+                temp = listener.AcceptTcpClient();
 
-                    this.mutex.WaitOne();
-                    this.clients.AddFirst(temp);
-                    this.mutex.ReleaseMutex();
+                this.clients.Add(temp);
 
-                    listener.Stop();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-                }
+                listener.Stop();
+
             }
         }
 
@@ -220,19 +211,13 @@ namespace VorneAPITest
 
 
                 // iterate through each of the clients and send message to them
-
-                List<LinkedListNode<TcpClient>> dead_clients = new List<LinkedListNode<TcpClient>>();
-
-                mutex.WaitOne();
-                for (LinkedListNode<TcpClient> node = clients.First; node != null; node = node.Next)
+                for (int i = 0; i < this.clients.Count; ++i)
                 {
                     try
                     {
                         byte[] buffer = new byte[BUFFERSIZE];
 
-                        TcpClient c = node.Value;
-
-
+                        TcpClient c = this.clients.ElementAt<TcpClient>(i);
                         NetworkStream stream = c.GetStream();
 
                         do
@@ -240,7 +225,6 @@ namespace VorneAPITest
                             stream.Read(buffer, 0, buffer.Length);
                         }
                         while (stream.DataAvailable);
-
                         
 
                         // send message back to client
@@ -248,28 +232,18 @@ namespace VorneAPITest
                         byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
                         stream.Write(messageBytes, 0, messageBytes.Length);
 
-                        
-                        
-
                     }
                     catch (Exception e)
                     {
-                        
-                        node.Value.Close();
-                        dead_clients.Add(node);
-
+                        this.clients.RemoveAt(i);
                     }
-
                 }
 
-                
-                foreach (LinkedListNode<TcpClient> llnode in dead_clients)
-                    clients.Remove(llnode);
-                
-                mutex.ReleaseMutex();
 
 
-               
+
+
+
             }
         }
 
@@ -375,6 +349,7 @@ namespace VorneAPITest
 
             try
             {
+
                 foreach (string portName in SerialPort.GetPortNames())
                 {
                     this.cbPorts.Items.Add(portName);
