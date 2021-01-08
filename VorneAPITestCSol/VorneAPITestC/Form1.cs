@@ -89,13 +89,15 @@ namespace VorneAPITestC
 
         private void communicate()
         {
+            TcpClient client;
+
             while (true)
             {
 
                 try
                 {
                     // connect to the server
-                    TcpClient client = new TcpClient(SERVERIP, SERVERPORT);
+                    client = new TcpClient(SERVERIP, SERVERPORT);
                     
 
                     while (true)
@@ -142,6 +144,7 @@ namespace VorneAPITestC
                    
 
                 }
+                
 
                 
 
