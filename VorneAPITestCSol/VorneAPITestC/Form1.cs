@@ -28,14 +28,14 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         const string VORNEIP = "10.119.12.15";
-        const string SERVERIP = "127.0.0.1";
+        const string SERVERIP = "10.119.16.158";
         public static string WCNAME = "3915";
 
         const int SERVERPORT = 50010;
 
         const int ROLLTIME = 10;
 
-        const int QUERYINTERVAL = 50; // miliseconds
+        const int QUERYINTERVAL = 250; // miliseconds
 
         
         public string ps;
@@ -144,9 +144,9 @@ namespace VorneAPITestC
                    
 
                 }
-                
 
-                
+
+                Thread.Sleep(QUERYINTERVAL);
 
                 
             }

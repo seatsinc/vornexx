@@ -21,7 +21,7 @@ namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
-        
+        private Mutex mutex = new Mutex();
 
         // buffer size for server client relationship
         const int BUFFERSIZE = 1024 * 1024;
@@ -51,7 +51,7 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
-        private List<TcpClient> clients = new List<TcpClient>();
+        private int clients = 0;
 
 
 
@@ -65,6 +65,8 @@ namespace VorneAPITest
         {
             InitializeComponent();
         }
+
+        
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -83,35 +85,35 @@ namespace VorneAPITest
             this.hour = 0;
             this.min = 0;
             this.sec = 0;
-           
-            
+
+
 
             // make it so the screen full screen
             Rectangle wa = Screen.GetWorkingArea(this);
-            this.Location = new Point(wa.Left, wa.Top);
-            this.Width = wa.Width;
-            this.Height = wa.Height;
+            this.Width = wa.Width / 5;
+            this.Height = wa.Height / 3;
+            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // aligning
-            this.lblClock.Location = new Point((wa.Right / 2) - (this.lblClock.Width / 2), (wa.Bottom / 2) - (this.lblClock.Height / 2));
+            this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
 
-            this.lblPartID.Location = new Point(wa.Right - this.lblPartID.Width - 20, wa.Top + 20);
-            this.lblPS.Location = new Point(wa.Left + 20, wa.Top + 20);
-            this.lblTime.Location = new Point(wa.Left + 20, wa.Bottom - this.lblTime.Height - 20);
-            this.lblWC.Location = new Point(wa.Right - this.lblWC.Width - 20, wa.Bottom - this.lblWC.Height - 20);
+            this.lblPS.Location = new Point(wa.Left + 10, wa.Top + 10);
+            this.lblPartID.Location = new Point(wa.Left + this.Width - this.lblPartID.Width - 10, wa.Top + 10);
+            this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
+            this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblTime.Height - 10);
 
             this.btnHrInc.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y - this.btnHrInc.Height);
             this.btnHrDec.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y + this.lblClock.Height);
-            this.btnMinInc.Location = new Point((wa.Right / 2) - (this.btnMinInc.Width / 2), this.lblClock.Location.Y - this.btnHrInc.Height);
-            this.btnMinDec.Location = new Point((wa.Right / 2) - (this.btnMinDec.Width / 2), this.lblClock.Location.Y + this.lblClock.Height);
+            this.btnMinInc.Location = new Point(wa.Left + this.Width / 2 - this.btnMinInc.Width / 2, this.lblClock.Location.Y - this.btnHrInc.Height);
+            this.btnMinDec.Location = new Point(wa.Left + this.Width / 2 - this.btnMinDec.Width / 2, this.lblClock.Location.Y + this.lblClock.Height);
             this.btnSecInc.Location = new Point(this.lblClock.Location.X + this.lblClock.Width - this.btnSecInc.Width, this.lblClock.Location.Y - this.btnHrInc.Height);
             this.btnSecDec.Location = new Point(this.lblClock.Location.X + this.lblClock.Width - this.btnSecDec.Width, this.lblClock.Location.Y + this.lblClock.Height);
 
-            this.btnStart.Location = new Point((wa.Right / 2) - this.btnStart.Width, wa.Bottom - this.btnStart.Height - 20);
-            this.btnStop.Location = new Point(wa.Right / 2, wa.Bottom - this.btnStop.Height - 20);
-
-            this.lblPort.Location = new Point((wa.Right / 2) - this.lblPort.Width, wa.Top + 20);
-            this.cbPorts.Location = new Point((wa.Right / 2), wa.Top + 20);
+            this.btnStart.Location = new Point(wa.Left + this.Width / 2 - this.btnStart.Width, wa.Top + this.Height - this.btnStart.Height - 10);
+            this.btnStop.Location = new Point(wa.Left + this.Width / 2, wa.Top + this.Height - this.btnStop.Height - 10);
+            
+            this.cbPorts.Location = new Point(wa.Left + this.Width / 2 - this.cbPorts.Width / 2, wa.Top + 10);
 
             this.lblClients.Location = new Point(this.cbPorts.Left, this.cbPorts.Bottom);
             
@@ -141,7 +143,7 @@ namespace VorneAPITest
 
 
             // communicating loop
-            Thread communicator = new Thread(this.communicate);
+            Thread communicator = new Thread(this.queryVorne);
             communicator.IsBackground = true;
             communicator.Start();
 
@@ -150,7 +152,11 @@ namespace VorneAPITest
             timer.Start();
             lightTimer.Start();
 
+            
+
         }
+
+        
 
         private int rollTime()
         {
@@ -159,89 +165,130 @@ namespace VorneAPITest
 
         private void accept()
         {
+            
+
             while (true)
             {
-                // server end point and listener
-                IPEndPoint ep;
-                TcpListener listener;
+                try
+                {
 
-                // initialize server enpoint and listenter
-                ep = new IPEndPoint(SERVERIP, SERVERPORT);
-                listener = new TcpListener(ep);
-                listener.Start(); // Start listening
 
-                /* Can only proceed from here
-                        * if a client makes a request to our application.
-                        * Once receives a request, should proceed from this line.
-                        */
-                TcpClient temp = new TcpClient();
-                temp = listener.AcceptTcpClient();
+                    // server end point and listener
+                    IPEndPoint ep;
+                    TcpListener listener;
 
-                this.clients.Add(temp);
+                    
+                    // initialize server enpoint and listenter
+                    ep = new IPEndPoint(SERVERIP, SERVERPORT);
+                    listener = new TcpListener(ep);
+                    
+                    listener.Start(); // Start listening
 
-                listener.Stop();
+                    /* Can only proceed from here
+                            * if a client makes a request to our application.
+                            * Once receives a request, should proceed from this line.
+                            */
+
+
+                    TcpClient temp = new TcpClient();
+
+                    temp = listener.AcceptTcpClient();
+
+                    Thread new_thread = new Thread(() => handleClient(ref temp));
+                    new_thread.Start();
+
+
+
+                    listener.Stop();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
+                }
 
             }
+
+            
+
         }
 
-        private void communicate()
+        private void handleClient(ref TcpClient c)
+        {
+            mutex.WaitOne();
+            this.clients++;
+            mutex.ReleaseMutex();
+
+            while (true)
+            {
+                try
+                {
+                    byte[] buffer = new byte[BUFFERSIZE];
+
+                    NetworkStream stream = c.GetStream();
+
+                    do
+                    {
+                        stream.Read(buffer, 0, buffer.Length);
+                    }
+                    while (stream.DataAvailable);
+
+
+                    // send message back to client
+                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                    byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+                    stream.Write(messageBytes, 0, messageBytes.Length);
+
+                }
+                catch (Exception e)
+                {
+                    c.Close();
+                    break;
+
+                }
+            }
+
+            mutex.WaitOne();
+            this.clients--;
+            mutex.ReleaseMutex();
+
+
+        }
+
+        private void queryVorne()
         {
             while (true)
             {
-
-                // vorne communication
-                RestClient client = new RestClient();
-
-
-                // make requests to vorne
-                string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
-                string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
-
-
-
-                // deserialize objects
-                PSActiveNS.PSActive psActive = JsonConvert.DeserializeObject<PSActiveNS.PSActive>(requestPS);
-                PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
-
-                this.pID = partRun.data.part_id;
-                this.psR = psActive.data.process_state_reason.ToUpper();
-                
-
-                this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
-
-
-                // iterate through each of the clients and send message to them
-                for (int i = 0; i < this.clients.Count; ++i)
+                try
                 {
-                    try
-                    {
-                        byte[] buffer = new byte[BUFFERSIZE];
 
-                        TcpClient c = this.clients.ElementAt<TcpClient>(i);
-                        NetworkStream stream = c.GetStream();
 
-                        do
-                        {
-                            stream.Read(buffer, 0, buffer.Length);
-                        }
-                        while (stream.DataAvailable);
-                        
+                    // vorne communication
+                    RestClient client = new RestClient();
 
-                        // send message back to client
-                        Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-                        byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
-                        stream.Write(messageBytes, 0, messageBytes.Length);
 
-                    }
-                    catch (Exception e)
-                    {
-                        this.clients.RemoveAt(i);
-                    }
+                    // make requests to vorne
+                    string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
+                    string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
+
+
+
+                    // deserialize objects
+                    PSActiveNS.PSActive psActive = JsonConvert.DeserializeObject<PSActiveNS.PSActive>(requestPS);
+                    PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
+
+
+                    this.pID = partRun.data.part_id;
+                    this.psR = psActive.data.process_state_reason.ToUpper();
+
+
+                    this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.ToString());
                 }
 
-
-
-
+                Thread.Sleep(250);
 
 
             }
@@ -587,7 +634,7 @@ namespace VorneAPITest
 
             this.BackColor = this.colorFromPS(this.getColor());
 
-            this.lblClients.Text = "Clients: " + this.clients.Count.ToString();
+            this.lblClients.Text = "Clients: " + this.clients;
 
             
         }
