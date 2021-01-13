@@ -32,8 +32,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.14";
+        const string WCNAME = "3910";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -195,6 +195,7 @@ namespace VorneAPITest
                     temp = listener.AcceptTcpClient();
 
                     Thread new_thread = new Thread(() => handleClient(ref temp));
+                    new_thread.IsBackground = true;
                     new_thread.Start();
 
 
