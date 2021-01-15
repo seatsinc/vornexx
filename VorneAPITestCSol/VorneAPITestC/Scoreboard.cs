@@ -282,6 +282,7 @@ namespace VorneAPITestC
 
                 }
 
+                totalLaborHours.Reverse();
                 sb.Reverse();
 
 
