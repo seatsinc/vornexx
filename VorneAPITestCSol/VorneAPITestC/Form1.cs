@@ -27,9 +27,9 @@ namespace VorneAPITestC
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
-        const string VORNEIP = "10.119.12.15";
-        const string SERVERIP = "10.119.16.158";
-        public static string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.14";
+        const string SERVERIP = "127.0.0.1";
+        public static string WCNAME = "3910";
 
         const int SERVERPORT = 50010;
 
@@ -111,12 +111,16 @@ namespace VorneAPITestC
 
                         // receive message from the server
                         byte[] readBytes = new byte[BUFFERSIZE];
+
+                        
+
                         do
                         {
                             stream.Read(readBytes, 0, readBytes.Length);
                         }
                         while (stream.DataAvailable);
 
+                        
                         Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
 
                         this.pID = message.pID;

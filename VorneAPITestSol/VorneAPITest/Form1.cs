@@ -92,8 +92,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // aligning
             this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
@@ -168,44 +168,42 @@ namespace VorneAPITest
             
 
             while (true)
-            {
+            {   
+                
+
+                // Get Host IP Address that is used to establish a connection  
+                // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
+                // If a host has multiple addresses, you will get a list of addresses  
+                IPHostEntry host = Dns.GetHostEntry("localhost");
+                IPAddress ipAddress = IPAddress.Any;
+                IPEndPoint localEndPoint = new IPEndPoint(SERVERIP, SERVERPORT);
+
                 try
                 {
-
-
-                    // server end point and listener
-                    IPEndPoint ep;
-                    TcpListener listener;
+                    // Create a Socket that will use Tcp protocol      
+                    Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+                    // A Socket must be associated with an endpoint using the Bind method  
+                    listener.Bind(localEndPoint);
+                    // Specify how many requests a Socket can listen before it gives Server busy response.  
+                    listener.Listen(0);
 
                     
-                    // initialize server enpoint and listenter
-                    ep = new IPEndPoint(SERVERIP, SERVERPORT);
-                    listener = new TcpListener(ep);
+                    Socket handler = listener.Accept();
+
                     
-                    listener.Start(); // Start listening
 
-                    /* Can only proceed from here
-                            * if a client makes a request to our application.
-                            * Once receives a request, should proceed from this line.
-                            */
-
-
-                    TcpClient temp = new TcpClient();
-
-                    temp = listener.AcceptTcpClient();
-
-                    Thread new_thread = new Thread(() => handleClient(ref temp));
+                    Thread new_thread = new Thread(() => socketHandler(ref handler));
                     new_thread.IsBackground = true;
                     new_thread.Start();
 
-
-
-                    listener.Stop();
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    
                 }
+
+
+
 
             }
 
@@ -213,47 +211,46 @@ namespace VorneAPITest
 
         }
 
-        private void handleClient(ref TcpClient c)
+        private void socketHandler(ref Socket handler)
         {
-            mutex.WaitOne();
+            this.mutex.WaitOne();
             this.clients++;
-            mutex.ReleaseMutex();
+            this.mutex.ReleaseMutex();
 
             while (true)
             {
                 try
                 {
-                    byte[] buffer = new byte[BUFFERSIZE];
+                    // Incoming data from the client.    
+                    string data = null;
+                    byte[] bytes = null;
 
-                    NetworkStream stream = c.GetStream();
+                    bytes = new byte[BUFFERSIZE];
+                    int bytesRec = handler.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
-                    do
-                    {
-                        stream.Read(buffer, 0, buffer.Length);
-                    }
-                    while (stream.DataAvailable);
-
-
-                    // send message back to client
+      
                     Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
                     byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
-                    stream.Write(messageBytes, 0, messageBytes.Length);
+                    handler.Send(messageBytes);
 
+                    
                 }
-                catch (Exception e)
+                catch
                 {
-                    c.Close();
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
                     break;
-
                 }
             }
 
-            mutex.WaitOne();
+            this.mutex.WaitOne();
             this.clients--;
-            mutex.ReleaseMutex();
-
-
+            this.mutex.ReleaseMutex();
         }
+
+
+        
 
         private void queryVorne()
         {
@@ -286,7 +283,7 @@ namespace VorneAPITest
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
+                    
                 }
 
                 Thread.Sleep(250);
@@ -362,7 +359,7 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                Console.WriteLine(exc.ToString());
+                
             }
         }
 
@@ -406,7 +403,7 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                Console.WriteLine(exc.ToString());
+                
             }
         }
 
