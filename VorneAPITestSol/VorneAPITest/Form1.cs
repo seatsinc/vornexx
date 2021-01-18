@@ -32,8 +32,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.14";
-        const string WCNAME = "3910";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -92,8 +92,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // aligning
             this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
