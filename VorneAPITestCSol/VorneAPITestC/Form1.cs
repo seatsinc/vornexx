@@ -21,14 +21,14 @@ namespace VorneAPITestC
     public partial class Form1 : Form
     {
         // buffer size for server client relationship
-        const int BUFFERSIZE = 1024 * 1024;
+        const int BUFFERSIZE = 1024;
 
         // random comment
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         const string VORNEIP = "10.119.12.14";
-        const string SERVERIP = "127.0.0.1";
+        IPAddress SERVERIP = IPAddress.Parse("127.0.0.1");
         public static string WCNAME = "3910";
 
         const int SERVERPORT = 50010;
@@ -89,68 +89,96 @@ namespace VorneAPITestC
 
         private void communicate()
         {
-            TcpClient client;
+            
+
+            byte[] bytes = new byte[BUFFERSIZE];
 
             while (true)
             {
 
                 try
                 {
-                    // connect to the server
-                    client = new TcpClient(SERVERIP, SERVERPORT);
-                    
 
-                    while (true)
+                    // Create a TCP/IP  socket.    
+                    using (Socket sender = new Socket(SERVERIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
                     {
-                        NetworkStream stream = client.GetStream();
 
-                        // send message to the server
-                        byte[] writeBytes = Encoding.Unicode.GetBytes("Please send us production state, part id, and takt time, thank you.");
-                        stream.Write(writeBytes, 0, writeBytes.Length);
+                        IPEndPoint remoteEP = new IPEndPoint(SERVERIP, SERVERPORT);
+
+                        // Connect to Remote EndPoint  
+                        sender.Connect(remoteEP);
 
 
-                        // receive message from the server
-                        byte[] readBytes = new byte[BUFFERSIZE];
-
-                        
-
-                        do
+                        try
                         {
-                            stream.Read(readBytes, 0, readBytes.Length);
+
+                            while (true)
+                            {
+
+
+                                // Encode the data string into a byte array.    
+                                byte[] msg = Encoding.Unicode.GetBytes("Hello from client.");
+
+
+                                // Send the data through the socket.
+                                sender.Send(msg);
+
+
+                                string data = "";
+
+
+                                // Receive the response from the remote device.
+                                int bytesRec = 0;
+
+                                do
+                                {
+                                    bytesRec = sender.Receive(bytes);
+                                    data += Encoding.Unicode.GetString(bytes, 0, bytesRec);
+
+                                } while (bytesRec == BUFFERSIZE);
+
+
+                                Message message = JsonConvert.DeserializeObject<Message>(data);
+
+
+                                if (message == null)
+                                    throw new Exception();
+
+                                this.pID = message.pID;
+                                this.tt = message.tt;
+                                this.color = message.color;
+                                this.ps = message.ps;
+
+                                Thread.Sleep(QUERYINTERVAL);
+
+                            }
                         }
-                        while (stream.DataAvailable);
-
-                        
-                        Message message = JsonConvert.DeserializeObject<Message>(Encoding.Unicode.GetString(readBytes));
-
-                        this.pID = message.pID;
-                        this.tt = message.tt;
-                        this.color = message.color;
-                        this.ps = message.ps;
-
-                        
-                        Thread.Sleep(QUERYINTERVAL);
-
-                        
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+                        finally
+                        {
+                            sender.Shutdown(SocketShutdown.Both);
+                            sender.Close();
+                        }
 
                     }
-
-                    
                 }
                 catch (Exception exc)
                 {
-
+                    Console.WriteLine(exc.ToString());
+                }
+                finally
+                {
                     this.pID = "";
                     this.ps = "CONNECTING...";
                     this.color = "BLACK*";
                     this.tt = 0;
-
-                   
-
                 }
 
 
-                Thread.Sleep(QUERYINTERVAL);
+                
 
                 
             }

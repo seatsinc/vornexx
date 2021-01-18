@@ -24,7 +24,7 @@ namespace VorneAPITest
         private Mutex mutex = new Mutex();
 
         // buffer size for server client relationship
-        const int BUFFERSIZE = 1024 * 1024;
+        const int BUFFERSIZE = 1024;
         
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
@@ -37,7 +37,7 @@ namespace VorneAPITest
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
-        readonly IPAddress SERVERIP = IPAddress.Any;
+        readonly IPAddress SERVERIP = IPAddress.Loopback;
         const int SERVERPORT = 50010;
 
         // keeps track of the production state 
@@ -174,80 +174,99 @@ namespace VorneAPITest
                 // Get Host IP Address that is used to establish a connection  
                 // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
                 // If a host has multiple addresses, you will get a list of addresses  
-                IPHostEntry host = Dns.GetHostEntry("localhost");
-                IPAddress ipAddress = IPAddress.Any;
                 IPEndPoint localEndPoint = new IPEndPoint(SERVERIP, SERVERPORT);
 
                 try
                 {
                     // Create a Socket that will use Tcp protocol      
-                    Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                    // A Socket must be associated with an endpoint using the Bind method  
-                    listener.Bind(localEndPoint);
-                    // Specify how many requests a Socket can listen before it gives Server busy response.  
-                    listener.Listen(0);
+                    using (Socket listener = new Socket(SERVERIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+                    {
 
-                    
-                    Socket handler = listener.Accept();
+                        // A Socket must be associated with an endpoint using the Bind method  
+                        listener.Bind(localEndPoint);
+                        // Specify how many requests a Socket can listen before it gives Server busy response.  
+                        listener.Listen(0);
 
-                    
 
-                    Thread new_thread = new Thread(() => socketHandler(ref handler));
-                    new_thread.IsBackground = true;
-                    new_thread.Start();
+                        Socket handler = listener.Accept();
 
+                        Thread new_thread = new Thread(() => socketHandler(ref handler));
+
+
+                        new_thread.IsBackground = true;
+                        new_thread.Start();
+                        
+                    }       
                 }
                 catch (Exception e)
                 {
-                    
+                    Console.WriteLine(e.ToString());
+
                 }
-
-
 
 
             }
 
-            
 
         }
 
         private void socketHandler(ref Socket handler)
         {
+            
             this.mutex.WaitOne();
             this.clients++;
             this.mutex.ReleaseMutex();
 
-            while (true)
+            try
             {
-                try
+                while (true)
                 {
-                    // Incoming data from the client.    
-                    string data = null;
+
+
                     byte[] bytes = null;
 
-                    bytes = new byte[BUFFERSIZE];
-                    int bytesRec = handler.Receive(bytes);
-                    data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
 
-      
+                    bytes = new byte[BUFFERSIZE];
+                    int bytesRec = 0;
+
+
+                    do
+                    {
+                        bytesRec = handler.Receive(bytes);
+
+                    } while (bytesRec == BUFFERSIZE);
+
+
+
+
                     Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
                     byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+
+
                     handler.Send(messageBytes);
 
-                    
-                }
-                catch
-                {
-                    handler.Shutdown(SocketShutdown.Both);
-                    handler.Close();
-                    break;
+
                 }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
 
-            this.mutex.WaitOne();
-            this.clients--;
-            this.mutex.ReleaseMutex();
+            }
+            finally
+            {
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+
+                this.mutex.WaitOne();
+                this.clients--;
+                this.mutex.ReleaseMutex();
+            }
         }
+
+
+            
+        
 
 
         
@@ -283,7 +302,7 @@ namespace VorneAPITest
                 }
                 catch (Exception e)
                 {
-                    
+                    Console.WriteLine(e.ToString());
                 }
 
                 Thread.Sleep(250);
@@ -359,7 +378,7 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                
+                Console.WriteLine(exc.ToString());
             }
         }
 
@@ -403,7 +422,7 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                
+                Console.WriteLine(exc.ToString());
             }
         }
 
