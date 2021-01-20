@@ -27,11 +27,13 @@ namespace VorneAPITestC
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
-        const string VORNEIP = "10.119.12.15";
-        IPAddress SERVERIP = IPAddress.Parse("10.119.16.158");
+        const string VORNEIP = "10.119.12.13";
+        const string SERVERIP = "127.0.0.1";
         public static string WCNAME = "3915";
 
         const int SERVERPORT = 50010;
+        const int CLIENTPORT = 50012;
+        const int TIMEOUT = 10000;
 
         const int ROLLTIME = 10;
 
@@ -91,98 +93,58 @@ namespace VorneAPITestC
         {
             
 
-            byte[] bytes = new byte[BUFFERSIZE];
-
             while (true)
             {
-
-                try
+                using (UdpClient client = new UdpClient(CLIENTPORT))
                 {
-
-                    // Create a TCP/IP  socket.    
-                    using (Socket sender = new Socket(SERVERIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+                    client.Client.SendTimeout = TIMEOUT;
+                    client.Client.ReceiveTimeout = TIMEOUT;
+                    try
                     {
+                        byte[] clientMessage = Encoding.Unicode.GetBytes("Hello from Client!");
 
-                        IPEndPoint remoteEP = new IPEndPoint(SERVERIP, SERVERPORT);
+                        
+                        client.Send(clientMessage, clientMessage.Length, SERVERIP, SERVERPORT);
 
-                        // Connect to Remote EndPoint  
-                        sender.Connect(remoteEP);
+                        
 
+                        IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 0);
 
-                        try
-                        {
-
-                            while (true)
-                            {
+                        string serverMessage = Encoding.Unicode.GetString(client.Receive(ref serverEP));
 
 
-                                // Encode the data string into a byte array.    
-                                byte[] msg = Encoding.Unicode.GetBytes("Hello from client.");
+                        Message message = JsonConvert.DeserializeObject<Message>(serverMessage);
 
 
-                                // Send the data through the socket.
-                                sender.Send(msg);
+                        if (message == null)
+                            throw new Exception();
+
+                        this.pID = message.pID;
+                        this.tt = message.tt;
+                        this.color = message.color;
+                        this.ps = message.ps;
 
 
-                                string data = "";
-
-
-                                // Receive the response from the remote device.
-                                int bytesRec = 0;
-
-                                do
-                                {
-                                    bytesRec = sender.Receive(bytes);
-                                    data += Encoding.Unicode.GetString(bytes, 0, bytesRec);
-
-                                } while (bytesRec == BUFFERSIZE);
-
-
-                                Message message = JsonConvert.DeserializeObject<Message>(data);
-
-
-                                if (message == null)
-                                    throw new Exception();
-
-                                this.pID = message.pID;
-                                this.tt = message.tt;
-                                this.color = message.color;
-                                this.ps = message.ps;
-
-                                Thread.Sleep(QUERYINTERVAL);
-
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                        finally
-                        {
-                            sender.Shutdown(SocketShutdown.Both);
-                            sender.Close();
-                        }
 
                     }
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
-                finally
-                {
-                    this.pID = "";
-                    this.ps = "CONNECTING...";
-                    this.color = "BLACK*";
-                    this.tt = 0;
-                }
+                    catch (Exception e)
+                    {
+                        
 
+                        this.pID = "";
+                        this.ps = "CONNECTING...";
+                        this.color = "BLACK*";
+                        this.tt = 0;
+                    }
+                    finally
+                    {
+                        Thread.Sleep(QUERYINTERVAL);
+                    }
 
-                
+                    
 
-                
+                }
             }
-
         }
 
         private void timer_Tick(object sender, EventArgs e)

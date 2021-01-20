@@ -16,7 +16,6 @@ using System.IO.Ports;
 using System.Threading;
 
 
-
 namespace VorneAPITest
 {
     public partial class Form1 : Form
@@ -32,8 +31,8 @@ namespace VorneAPITest
         
 
         // ip address of the vorne machine
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.13";
+        const string WCNAME = "3920";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -55,7 +54,7 @@ namespace VorneAPITest
 
 
 
-        
+        Queue<IPEndPoint> clientEPs = new Queue<IPEndPoint>();
 
 
         
@@ -92,8 +91,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // aligning
             this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
@@ -136,23 +135,22 @@ namespace VorneAPITest
 
 
 
-            // listening loop
-            Thread accepter = new Thread(this.accept);
-            accepter.IsBackground = true;
-            accepter.Start();
-
-
             // communicating loop
             Thread communicator = new Thread(this.queryVorne);
             communicator.IsBackground = true;
             communicator.Start();
-
             
+
 
             timer.Start();
             lightTimer.Start();
 
             
+            Thread listener = new Thread(this.listen);
+            listener.IsBackground = true;
+            listener.Start();
+            
+
 
         }
 
@@ -163,106 +161,45 @@ namespace VorneAPITest
             return this.calcSec(this.hour, this.min, this.sec) / ROLLDIVISOR;
         }
 
-        private void accept()
+
+        private void listen()
         {
             
-
             while (true)
-            {   
-                
-
-                // Get Host IP Address that is used to establish a connection  
-                // In this case, we get one IP address of localhost that is IP : 127.0.0.1  
-                // If a host has multiple addresses, you will get a list of addresses  
-                IPEndPoint localEndPoint = new IPEndPoint(SERVERIP, SERVERPORT);
-
-                try
+            {
+                using (UdpClient listener = new UdpClient(SERVERPORT))
                 {
-                    // Create a Socket that will use Tcp protocol      
-                    using (Socket listener = new Socket(SERVERIP.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
-                    {
-
-                        // A Socket must be associated with an endpoint using the Bind method  
-                        listener.Bind(localEndPoint);
-                        // Specify how many requests a Socket can listen before it gives Server busy response.  
-                        listener.Listen(0);
-
-
-                        Socket handler = listener.Accept();
-
-                        Thread new_thread = new Thread(() => socketHandler(ref handler));
-
-
-                        new_thread.IsBackground = true;
-                        new_thread.Start();
-                        
-                    }       
+                    IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+                    
+                    listener.Receive(ref clientEP);
+                    this.mutex.WaitOne();
+                    this.clients = this.clientEPs.Count;
+                    this.clientEPs.Enqueue(clientEP);
+                    this.mutex.ReleaseMutex();
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.ToString());
-
-                }
-
-
             }
-
-
         }
 
-        private void socketHandler(ref Socket handler)
+        private void volley()
         {
-            
+            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+            byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+
             this.mutex.WaitOne();
-            this.clients++;
-            this.mutex.ReleaseMutex();
 
-            try
+            while (this.clientEPs.Count > 0)
             {
-                while (true)
+                using (UdpClient volleyer = new UdpClient(50011))
                 {
-
-
-                    byte[] bytes = null;
-
-
-                    bytes = new byte[BUFFERSIZE];
-                    int bytesRec = 0;
-
-
-                    do
-                    {
-                        bytesRec = handler.Receive(bytes);
-
-                    } while (bytesRec == BUFFERSIZE);
-
-
-
-
-                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-                    byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
-
-
-                    handler.Send(messageBytes);
-
-
+                    volleyer.Send(messageBytes, messageBytes.Length, this.clientEPs.Peek());
                 }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
 
+                this.clientEPs.Dequeue();
             }
-            finally
-            {
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
 
-                this.mutex.WaitOne();
-                this.clients--;
-                this.mutex.ReleaseMutex();
-            }
+            this.mutex.ReleaseMutex();
         }
+
 
 
             
@@ -660,6 +597,8 @@ namespace VorneAPITest
         private void timer_Tick(object sender, EventArgs e)
         {
             this.updateHUD();
+            this.volley();
+            
         }
 
        
