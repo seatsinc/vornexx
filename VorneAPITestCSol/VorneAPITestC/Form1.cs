@@ -20,22 +20,20 @@ namespace VorneAPITestC
 
     public partial class Form1 : Form
     {
-        // buffer size for server client relationship
-        const int BUFFERSIZE = 1024;
-
-        // random comment
 
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
+        // ONLY CHANGE THESE VALUES
         const string VORNEIP = "10.119.12.13";
         const string SERVERIP = "127.0.0.1";
         public static string WCNAME = "3915";
 
-        const int SERVERPORT = 50010;
-        const int CLIENTPORT = 50012;
-        const int TIMEOUT = 10000;
+        
+        // keep ports all the same
+        const int SERVERPORT = 50010; // the port the server LISTENS on
+        const int CLIENTPORT = 50012; // the port the client communicates through
+        const int TIMEOUT = 5000; // the time it takes for the client to realize that the server is offline
 
-        const int ROLLTIME = 10;
 
         const int QUERYINTERVAL = 250; // miliseconds
 
@@ -91,22 +89,23 @@ namespace VorneAPITestC
 
         private void communicate()
         {
-            
+
 
             while (true)
             {
                 using (UdpClient client = new UdpClient(CLIENTPORT))
                 {
-                    client.Client.SendTimeout = TIMEOUT;
-                    client.Client.ReceiveTimeout = TIMEOUT;
                     try
                     {
+
+                        client.Client.SendTimeout = TIMEOUT;
+                        client.Client.ReceiveTimeout = TIMEOUT;
                         byte[] clientMessage = Encoding.Unicode.GetBytes("Hello from Client!");
 
-                        
+
                         client.Send(clientMessage, clientMessage.Length, SERVERIP, SERVERPORT);
 
-                        
+
 
                         IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 0);
 
@@ -125,11 +124,10 @@ namespace VorneAPITestC
                         this.ps = message.ps;
 
 
-
                     }
                     catch (Exception e)
                     {
-                        
+
 
                         this.pID = "";
                         this.ps = "CONNECTING...";
@@ -138,13 +136,11 @@ namespace VorneAPITestC
                     }
                     finally
                     {
+                        client.Close();
                         Thread.Sleep(QUERYINTERVAL);
                     }
-
-                    
-
                 }
-            }
+            }      
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -152,12 +148,12 @@ namespace VorneAPITestC
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
             this.lblPartID.Text = this.pID;
-            if (this.ps == "SERVER OFFLINE")
-                this.lblClock.Text = "";
+            if (this.ps == "CONNECTING...")
+                this.lblClock.Text = "        ";
             else
                 this.lblClock.Text = this.clockFromSec(this.tt);
 
-            if (this.tt < ROLLTIME && this.color == "BLACK")
+            if (this.inRoll)
                 this.lblPS.Text = "ROLL!";
             else
                 this.lblPS.Text = this.ps;

@@ -22,22 +22,24 @@ namespace VorneAPITest
     {
         private Mutex mutex = new Mutex();
 
-        // buffer size for server client relationship
-        const int BUFFERSIZE = 1024;
-        
+
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
 
         
 
         // ip address of the vorne machine
+        // ONLY CHANGE THESE VALUES
         const string VORNEIP = "10.119.12.13";
         const string WCNAME = "3920";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
-        readonly IPAddress SERVERIP = IPAddress.Loopback;
-        const int SERVERPORT = 50010;
+        readonly IPAddress SERVERIP = IPAddress.Any;
+
+        // keep ports the same
+        const int LISTENPORT = 50010; // the port that the server listens on
+        const int RELAYPORT = 50011; // the port that the server sends information through
 
         // keeps track of the production state 
         private string ps; // production state
@@ -91,8 +93,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // aligning
             this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
@@ -136,9 +138,9 @@ namespace VorneAPITest
 
 
             // communicating loop
-            Thread communicator = new Thread(this.queryVorne);
-            communicator.IsBackground = true;
-            communicator.Start();
+            Thread vorneQueryer = new Thread(this.queryVorne);
+            vorneQueryer.IsBackground = true;
+            vorneQueryer.Start();
             
 
 
@@ -164,18 +166,31 @@ namespace VorneAPITest
 
         private void listen()
         {
-            
+
             while (true)
             {
-                using (UdpClient listener = new UdpClient(SERVERPORT))
+                using (UdpClient listener = new UdpClient(LISTENPORT))
                 {
-                    IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-                    
-                    listener.Receive(ref clientEP);
-                    this.mutex.WaitOne();
-                    this.clients = this.clientEPs.Count;
-                    this.clientEPs.Enqueue(clientEP);
-                    this.mutex.ReleaseMutex();
+                    try
+                    {
+
+                        IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+
+                        listener.Receive(ref clientEP);
+                        this.mutex.WaitOne();
+
+                        this.clientEPs.Enqueue(clientEP);
+                        this.mutex.ReleaseMutex();
+                    }
+                
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                    finally
+                    {
+                        listener.Close();
+                    }
                 }
             }
         }
@@ -187,14 +202,29 @@ namespace VorneAPITest
 
             this.mutex.WaitOne();
 
+            this.clients = this.clientEPs.Count;
+
             while (this.clientEPs.Count > 0)
             {
-                using (UdpClient volleyer = new UdpClient(50011))
+                using (UdpClient volleyer = new UdpClient(RELAYPORT))
                 {
-                    volleyer.Send(messageBytes, messageBytes.Length, this.clientEPs.Peek());
-                }
+                    try
+                    {
 
-                this.clientEPs.Dequeue();
+                        volleyer.Send(messageBytes, messageBytes.Length, this.clientEPs.Peek());
+
+
+                        this.clientEPs.Dequeue();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                    finally
+                    {
+                        volleyer.Close();
+                    }
+                }
             }
 
             this.mutex.ReleaseMutex();
@@ -588,7 +618,7 @@ namespace VorneAPITest
 
             this.BackColor = this.colorFromPS(this.getColor());
 
-            this.lblClients.Text = "Clients: " + this.clients;
+            this.lblClients.Text = "Query Queue: " + this.clients;
 
             
         }
