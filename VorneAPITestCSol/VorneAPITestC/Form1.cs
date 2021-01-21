@@ -24,7 +24,7 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
+        const string VORNEIP = "10.119.12.15";
         const string SERVERIP = "127.0.0.1";
         public static string WCNAME = "3915";
 
@@ -32,7 +32,7 @@ namespace VorneAPITestC
         // keep ports all the same
         const int SERVERPORT = 50010; // the port the server LISTENS on
         const int CLIENTPORT = 50012; // the port the client communicates through
-        const int TIMEOUT = 5000; // the time it takes for the client to realize that the server is offline
+        const int TIMEOUT = 1000; // the time it takes for the client to realize that the server is offline
 
 
         const int QUERYINTERVAL = 250; // miliseconds
@@ -90,61 +90,79 @@ namespace VorneAPITestC
         private void communicate()
         {
 
+            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 0);
+            string serverMessage;
+            byte[] clientMessage = Encoding.Unicode.GetBytes("Hello from Client!");
 
             while (true)
             {
-                using (UdpClient client = new UdpClient(CLIENTPORT))
+                try
                 {
-                    try
+
+                    using (UdpClient client = new UdpClient(CLIENTPORT))
                     {
+                        try
+                        {
+                            client.Client.SendTimeout = TIMEOUT;
+                            client.Client.ReceiveTimeout = TIMEOUT;
 
-                        client.Client.SendTimeout = TIMEOUT;
-                        client.Client.ReceiveTimeout = TIMEOUT;
-                        byte[] clientMessage = Encoding.Unicode.GetBytes("Hello from Client!");
+                            
 
+                            while (true)
+                            {
 
-                        client.Send(clientMessage, clientMessage.Length, SERVERIP, SERVERPORT);
+                                client.Send(clientMessage, clientMessage.Length, SERVERIP, SERVERPORT);
 
+                                serverMessage = Encoding.Unicode.GetString(client.Receive(ref serverEP));
 
-
-                        IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 0);
-
-                        string serverMessage = Encoding.Unicode.GetString(client.Receive(ref serverEP));
-
-
-                        Message message = JsonConvert.DeserializeObject<Message>(serverMessage);
-
-
-                        if (message == null)
-                            throw new Exception();
-
-                        this.pID = message.pID;
-                        this.tt = message.tt;
-                        this.color = message.color;
-                        this.ps = message.ps;
+                                Message message = JsonConvert.DeserializeObject<Message>(serverMessage);
 
 
+                                if (message == null)
+                                    throw new Exception();
+
+                                this.pID = message.pID;
+                                this.tt = message.tt;
+                                this.color = message.color;
+                                this.ps = message.ps;
+
+
+
+                                if (this.color != "BLACK" && this.inRoll == true)
+                                {
+                                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
+                                    sp.Play();
+                                }
+
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+
+                            this.pID = "";
+                            this.ps = "CONNECTING...";
+                            this.color = "BLACK*";
+                            this.tt = 0;
+                        }
+                        finally
+                        {
+                            client.Close();
+                            Thread.Sleep(QUERYINTERVAL);
+                        }
                     }
-                    catch (Exception e)
-                    {
-
-
-                        this.pID = "";
-                        this.ps = "CONNECTING...";
-                        this.color = "BLACK*";
-                        this.tt = 0;
-                    }
-                    finally
-                    {
-                        client.Close();
-                        Thread.Sleep(QUERYINTERVAL);
-                    }
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
                 }
             }      
         }
 
         private void timer_Tick(object sender, EventArgs e)
         {
+           
+
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
             this.lblPartID.Text = this.pID;
@@ -160,13 +178,6 @@ namespace VorneAPITestC
 
             this.BackColor = this.colorFromPS(this.color);
 
-
-
-            if (this.color != "BLACK" && this.inRoll == true)
-            {
-                SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-                sp.Play();
-            }
 
             if (this.color == "BLACK")
             {

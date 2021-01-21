@@ -37,6 +37,9 @@ namespace VorneAPITest
         // ...should be IPAddress.Loopback if on local computer
         readonly IPAddress SERVERIP = IPAddress.Any;
 
+        private const int VORNEQUERYINTERVAL = 1000;
+        private const int VORNETIMEOUT = 5000;
+
         // keep ports the same
         const int LISTENPORT = 50010; // the port that the server listens on
         const int RELAYPORT = 50011; // the port that the server sends information through
@@ -52,15 +55,15 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
-        private int clients = 0;
+
 
 
 
         Queue<IPEndPoint> clientEPs = new Queue<IPEndPoint>();
 
 
-        
-        
+        private byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(new Message("NA", "BLACK*", "NA", 0)));
+
 
         public Form1()
         {
@@ -116,7 +119,7 @@ namespace VorneAPITest
             
             this.cbPorts.Location = new Point(wa.Left + this.Width / 2 - this.cbPorts.Width / 2, wa.Top + 10);
 
-            this.lblClients.Location = new Point(this.cbPorts.Left, this.cbPorts.Bottom);
+            
             
 
             // populate ports in combo box
@@ -166,73 +169,91 @@ namespace VorneAPITest
 
         private void listen()
         {
+            IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
 
             while (true)
             {
-                using (UdpClient listener = new UdpClient(LISTENPORT))
+                try
                 {
-                    try
-                    {
+                    
 
-                        IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
-
-                        listener.Receive(ref clientEP);
-                        this.mutex.WaitOne();
-
-                        this.clientEPs.Enqueue(clientEP);
-                        this.mutex.ReleaseMutex();
-                    }
-                
-                    catch (Exception e)
+                    using (UdpClient listener = new UdpClient(LISTENPORT))
                     {
-                        Console.WriteLine(e.ToString());
-                    }
-                    finally
-                    {
-                        listener.Close();
+                        try
+                        {
+                            while (true)
+                            {
+
+                                listener.Receive(ref clientEP);
+
+                                this.mutex.WaitOne();
+                                this.clientEPs.Enqueue(clientEP);
+                                this.mutex.ReleaseMutex();
+                                
+                            }
+                        }
+
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.ToString());
+                        }
+                        finally
+                        {
+                            listener.Close();
+                        }
                     }
                 }
-            }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
+            } 
         }
 
-        private void volley()
+
+        private void relay()
         {
-            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-            byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
 
             this.mutex.WaitOne();
 
-            this.clients = this.clientEPs.Count;
-
-            while (this.clientEPs.Count > 0)
+            try
             {
-                using (UdpClient volleyer = new UdpClient(RELAYPORT))
+                using (UdpClient relayer = new UdpClient(RELAYPORT))
                 {
                     try
                     {
+                        while (this.clientEPs.Count > 0)
+                        {
 
-                        volleyer.Send(messageBytes, messageBytes.Length, this.clientEPs.Peek());
+                            relayer.Send(this.messageBytes, this.messageBytes.Length, this.clientEPs.Peek());
 
 
-                        this.clientEPs.Dequeue();
+                            this.clientEPs.Dequeue();
+                            
+
+                        }
                     }
+
                     catch (Exception e)
                     {
                         Console.WriteLine(e.ToString());
                     }
                     finally
                     {
-                        volleyer.Close();
+                        relayer.Close();
                     }
                 }
             }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
 
             this.mutex.ReleaseMutex();
+
+
         }
 
-
-
-            
         
 
 
@@ -244,10 +265,10 @@ namespace VorneAPITest
             {
                 try
                 {
-
+                    
 
                     // vorne communication
-                    RestClient client = new RestClient();
+                    RestClient client = new RestClient(VORNETIMEOUT);
 
 
                     // make requests to vorne
@@ -266,13 +287,24 @@ namespace VorneAPITest
 
 
                     this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
+
+
+                    
+
+                    
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
-                }
 
-                Thread.Sleep(250);
+                    this.pID = "";
+                    this.psR = "";
+                    this.ps = "VORNE OFFLINE";
+
+                }
+                
+
+                Thread.Sleep(VORNEQUERYINTERVAL);
 
 
             }
@@ -618,7 +650,7 @@ namespace VorneAPITest
 
             this.BackColor = this.colorFromPS(this.getColor());
 
-            this.lblClients.Text = "Query Queue: " + this.clients;
+            
 
             
         }
@@ -626,9 +658,11 @@ namespace VorneAPITest
 
         private void timer_Tick(object sender, EventArgs e)
         {
+            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+            this.messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+
             this.updateHUD();
-            this.volley();
-            
+            this.relay();
         }
 
        

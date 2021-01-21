@@ -19,10 +19,11 @@ namespace VorneAPITest
 
     public class RestClient
     {
-        
 
-        public RestClient()
+        private int timeout;
+        public RestClient(int t)
         {
+            this.timeout = t;
             
         }
 
@@ -31,6 +32,8 @@ namespace VorneAPITest
             string strResponseValue = string.Empty;
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endPoint);
+
+            request.Timeout = this.timeout;
 
             request.Method = httpMethod.ToString();
 
@@ -54,7 +57,7 @@ namespace VorneAPITest
                 } // end of ResponseStream
             }
 
-                return strResponseValue;
+            return strResponseValue;
 
         }
 
