@@ -39,6 +39,7 @@ namespace VorneAPITest
 
         private const int VORNEQUERYINTERVAL = 1000;
         private const int VORNETIMEOUT = 5000;
+        private const int CLIENTTIMEOUT = 500;
 
         // keep ports the same
         const int LISTENPORT = 50010; // the port that the server listens on
@@ -179,6 +180,8 @@ namespace VorneAPITest
 
                     using (UdpClient listener = new UdpClient(LISTENPORT))
                     {
+                        listener.Client.ReceiveTimeout = CLIENTTIMEOUT;
+
                         try
                         {
                             while (true)
@@ -220,6 +223,8 @@ namespace VorneAPITest
             {
                 using (UdpClient relayer = new UdpClient(RELAYPORT))
                 {
+                    relayer.Client.SendTimeout = CLIENTTIMEOUT;
+
                     try
                     {
                         while (this.clientEPs.Count > 0)

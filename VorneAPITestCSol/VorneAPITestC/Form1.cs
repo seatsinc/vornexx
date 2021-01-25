@@ -24,9 +24,9 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.15";
+        const string VORNEIP = "10.119.12.13";
         const string SERVERIP = "127.0.0.1";
-        public static string WCNAME = "3915";
+        public static string WCNAME = "3920";
 
         
         // keep ports all the same
