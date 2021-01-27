@@ -30,8 +30,8 @@ namespace VorneAPITest
 
         // ip address of the vorne machine
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
-        const string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.14";
+        const string WCNAME = "3910";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
@@ -39,11 +39,10 @@ namespace VorneAPITest
 
         private const int VORNEQUERYINTERVAL = 1000;
         private const int VORNETIMEOUT = 5000;
-        private const int CLIENTTIMEOUT = 500;
+       
 
         // keep ports the same
         const int LISTENPORT = 50010; // the port that the server listens on
-        const int RELAYPORT = 50011; // the port that the server sends information through
 
         // keeps track of the production state 
         private string ps; // production state
@@ -59,8 +58,6 @@ namespace VorneAPITest
 
 
 
-
-        Queue<IPEndPoint> clientEPs = new Queue<IPEndPoint>();
 
 
         private byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(new Message("NA", "BLACK*", "NA", 0)));
@@ -148,6 +145,7 @@ namespace VorneAPITest
             
 
 
+
             timer.Start();
             lightTimer.Start();
 
@@ -180,7 +178,6 @@ namespace VorneAPITest
 
                     using (UdpClient listener = new UdpClient(LISTENPORT))
                     {
-                        listener.Client.ReceiveTimeout = CLIENTTIMEOUT;
 
                         try
                         {
@@ -189,10 +186,8 @@ namespace VorneAPITest
 
                                 listener.Receive(ref clientEP);
 
-                                this.mutex.WaitOne();
-                                this.clientEPs.Enqueue(clientEP);
-                                this.mutex.ReleaseMutex();
-                                
+                                listener.Send(this.messageBytes, this.messageBytes.Length, clientEP);
+
                             }
                         }
 
@@ -214,55 +209,7 @@ namespace VorneAPITest
         }
 
 
-        private void relay()
-        {
 
-            this.mutex.WaitOne();
-
-            try
-            {
-                using (UdpClient relayer = new UdpClient(RELAYPORT))
-                {
-                    relayer.Client.SendTimeout = CLIENTTIMEOUT;
-
-                    try
-                    {
-                        while (this.clientEPs.Count > 0)
-                        {
-
-                            relayer.Send(this.messageBytes, this.messageBytes.Length, this.clientEPs.Peek());
-
-
-                            this.clientEPs.Dequeue();
-                            
-
-                        }
-                    }
-
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                    finally
-                    {
-                        relayer.Close();
-                    }
-                }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc.ToString());
-            }
-
-            this.mutex.ReleaseMutex();
-
-
-        }
-
-        
-
-
-        
 
         private void queryVorne()
         {
@@ -667,7 +614,7 @@ namespace VorneAPITest
             this.messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
 
             this.updateHUD();
-            this.relay();
+           
         }
 
        

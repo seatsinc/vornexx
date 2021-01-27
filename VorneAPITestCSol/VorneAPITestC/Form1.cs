@@ -24,9 +24,9 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
-        const string SERVERIP = "127.0.0.1";
-        public static string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.14";
+        const string SERVERIP = "10.119.16.34";
+        public static string WCNAME = "3910";
 
         
         // keep ports all the same
@@ -35,7 +35,6 @@ namespace VorneAPITestC
         const int TIMEOUT = 1000; // the time it takes for the client to realize that the server is offline
 
 
-        const int QUERYINTERVAL = 250; // miliseconds
 
         
         public string ps;
@@ -103,7 +102,7 @@ namespace VorneAPITestC
                     {
                         try
                         {
-                            client.Client.SendTimeout = TIMEOUT;
+                            
                             client.Client.ReceiveTimeout = TIMEOUT;
 
                             
@@ -126,14 +125,6 @@ namespace VorneAPITestC
                                 this.color = message.color;
                                 this.ps = message.ps;
 
-
-
-                                if (this.color != "BLACK" && this.inRoll == true)
-                                {
-                                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-                                    sp.Play();
-                                }
-
                             }
                         }
                         catch (Exception e)
@@ -148,7 +139,6 @@ namespace VorneAPITestC
                         finally
                         {
                             client.Close();
-                            Thread.Sleep(QUERYINTERVAL);
                         }
                     }
                 }
@@ -178,6 +168,12 @@ namespace VorneAPITestC
 
             this.BackColor = this.colorFromPS(this.color);
 
+            if (this.color != "BLACK" && this.inRoll == true)
+            {
+                SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
+                sp.Play();
+            }
+
 
             if (this.color == "BLACK")
             {
@@ -187,6 +183,8 @@ namespace VorneAPITestC
             {
                 this.inRoll = false;
             }
+
+            
         }
 
         private System.Drawing.Color colorFromPS(string ps)
