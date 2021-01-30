@@ -14,6 +14,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO.Ports;
 using System.Threading;
+using System.IO;
 
 
 namespace VorneAPITest
@@ -30,16 +31,16 @@ namespace VorneAPITest
 
         // ip address of the vorne machine
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.14";
-        const string WCNAME = "3910";
+        const string VORNEIP = "10.119.12.13";
+        const string WCNAME = "3920";
 
         // ipaddress IPAddress.Any if deploying
         // ...should be IPAddress.Loopback if on local computer
         readonly IPAddress SERVERIP = IPAddress.Any;
 
-        private const int VORNEQUERYINTERVAL = 1000;
         private const int VORNETIMEOUT = 5000;
        
+        
 
         // keep ports the same
         const int LISTENPORT = 50010; // the port that the server listens on
@@ -56,7 +57,7 @@ namespace VorneAPITest
         private bool stopped = true;
 
 
-
+        UdpClient listener;
 
 
 
@@ -137,27 +138,63 @@ namespace VorneAPITest
             this.TopMost = true;
 
 
-
-            // communicating loop
-            Thread vorneQueryer = new Thread(this.queryVorne);
-            vorneQueryer.IsBackground = true;
-            vorneQueryer.Start();
+            this.queryVorneAsync();
             
-
-
-
+       
             timer.Start();
             lightTimer.Start();
 
-            
-            Thread listener = new Thread(this.listen);
-            listener.IsBackground = true;
-            listener.Start();
-            
+            // binding listener to the listening port
+
+
+
+
+            try
+            {
+
+                this.listener = new UdpClient(LISTENPORT);
+
+                this.listener.BeginReceive(new AsyncCallback(this.receive), null);
+
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.ToString());
+            }
+
 
 
         }
 
+
+        private void receive(IAsyncResult res)
+        {
+            IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+
+            try
+            {
+
+                this.listener.EndReceive(res, ref clientEP);
+
+            }
+            finally
+            {
+                this.listener.BeginReceive(new AsyncCallback(this.receive), null);
+            }
+
+                
+            try
+            {
+                this.listener.Send(this.messageBytes, this.messageBytes.Length, clientEP);
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Could not write to client! Error: " + exc.ToString());
+            }
+
+            
+                
+        }
         
 
         private int rollTime()
@@ -166,67 +203,28 @@ namespace VorneAPITest
         }
 
 
-        private void listen()
+
+        private async void queryVorneAsync()
         {
-            IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+            // vorne communication
+            RestClient client = new RestClient(VORNETIMEOUT);
+
+            
 
             while (true)
             {
+
                 try
                 {
                     
 
-                    using (UdpClient listener = new UdpClient(LISTENPORT))
-                    {
 
-                        try
-                        {
-                            while (true)
-                            {
-
-                                listener.Receive(ref clientEP);
-
-                                listener.Send(this.messageBytes, this.messageBytes.Length, clientEP);
-
-                            }
-                        }
-
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                        finally
-                        {
-                            listener.Close();
-                        }
-                    }
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
-            } 
-        }
+                    string requestPS = await client.getAsync("http://" + VORNEIP + "/api/v0/process_state/active");
+                    string requestPR = await client.getAsync("http://" + VORNEIP + "/api/v0/part_run");
 
 
-
-
-        private void queryVorne()
-        {
-            while (true)
-            {
-                try
-                {
-                    
-
-                    // vorne communication
-                    RestClient client = new RestClient(VORNETIMEOUT);
-
-
-                    // make requests to vorne
-                    string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
-                    string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
-
+                    if (requestPS == string.Empty || requestPR == string.Empty)
+                        throw new Exception("Could not make http request!");
 
 
                     // deserialize objects
@@ -241,26 +239,24 @@ namespace VorneAPITest
                     this.ps = Util.replAwBStr(psActive.data.name.ToUpper(), '_', ' ');
 
 
-                    
-
-                    
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e.ToString());
 
+                    
                     this.pID = "";
                     this.psR = "";
-                    this.ps = "VORNE OFFLINE";
+                    this.ps = "";
+                    
 
                 }
                 
-
-                Thread.Sleep(VORNEQUERYINTERVAL);
-
-
             }
+
+            
         }
+
 
         private void OnApplicationExit(object sender, EventArgs e)
             // turns lights off when the program exits
