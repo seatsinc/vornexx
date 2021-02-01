@@ -21,26 +21,26 @@ namespace VorneAPITest
 {
     public partial class Form1 : Form
     {
-        private Mutex mutex = new Mutex();
+        public static Mutex mutex = new Mutex();
 
 
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
 
-        
+        private SyncServer ss;
+
+
 
         // ip address of the vorne machine
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
-        const string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
-        // ipaddress IPAddress.Any if deploying
-        // ...should be IPAddress.Loopback if on local computer
-        readonly IPAddress SERVERIP = IPAddress.Any;
 
-        private const int VORNETIMEOUT = 5000;
-       
-        
+        private const int VORNEQUERYINTERVAL = 125;
+        private const int RECEIVETIMEOUT = 125;
+
+
 
         // keep ports the same
         const int LISTENPORT = 50010; // the port that the server listens on
@@ -57,11 +57,9 @@ namespace VorneAPITest
         private bool stopped = true;
 
 
-        UdpClient listener;
 
 
 
-        private byte[] messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(new Message("NA", "BLACK*", "NA", 0)));
 
 
         public Form1()
@@ -69,7 +67,7 @@ namespace VorneAPITest
             InitializeComponent();
         }
 
-        
+
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -115,11 +113,12 @@ namespace VorneAPITest
 
             this.btnStart.Location = new Point(wa.Left + this.Width / 2 - this.btnStart.Width, wa.Top + this.Height - this.btnStart.Height - 10);
             this.btnStop.Location = new Point(wa.Left + this.Width / 2, wa.Top + this.Height - this.btnStop.Height - 10);
-            
-            this.cbPorts.Location = new Point(wa.Left + this.Width / 2 - this.cbPorts.Width / 2, wa.Top + 10);
 
+            this.cbPorts.Location = new Point(wa.Left + this.Width / 2 - this.cbPorts.Width / 2, wa.Top + 10);
             
-            
+
+
+
 
             // populate ports in combo box
             this.populatePorts();
@@ -128,33 +127,51 @@ namespace VorneAPITest
             {
                 MessageBox.Show("Error: No serial ports detected. Plug in ports and restart.");
             }
-            
 
-            
-            
+
+
+
 
             // make it so the application will always be on top
             this.BringToFront();
             this.TopMost = true;
 
+            Thread vorneQueryThread = new Thread(this.queryVorne);
+            vorneQueryThread.IsBackground = true;
+            vorneQueryThread.Start();
 
-            this.queryVorneAsync();
-            
-       
+
             timer.Start();
+
+
+            // light timer must be 1500
+            lightTimer.Interval = 1500;
             lightTimer.Start();
+
+
+
 
             // binding listener to the listening port
 
 
 
 
+            Thread listenThread = new Thread(this.listen);
+            listenThread.IsBackground = true;
+            listenThread.Start();
+
+
+
+        }
+
+
+        private void listen()
+        {
+
             try
             {
-
-                this.listener = new UdpClient(LISTENPORT);
-
-                this.listener.BeginReceive(new AsyncCallback(this.receive), null);
+                this.ss = new SyncServer(LISTENPORT, RECEIVETIMEOUT);
+                this.ss.listen();
 
             }
             catch (Exception exc)
@@ -162,40 +179,10 @@ namespace VorneAPITest
                 MessageBox.Show(exc.ToString());
             }
 
-
-
         }
 
 
-        private void receive(IAsyncResult res)
-        {
-            IPEndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
 
-            try
-            {
-
-                this.listener.EndReceive(res, ref clientEP);
-
-            }
-            finally
-            {
-                this.listener.BeginReceive(new AsyncCallback(this.receive), null);
-            }
-
-                
-            try
-            {
-                this.listener.Send(this.messageBytes, this.messageBytes.Length, clientEP);
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine("Could not write to client! Error: " + exc.ToString());
-            }
-
-            
-                
-        }
-        
 
         private int rollTime()
         {
@@ -204,23 +191,23 @@ namespace VorneAPITest
 
 
 
-        private async void queryVorneAsync()
+        private void queryVorne()
         {
             // vorne communication
-            RestClient client = new RestClient(VORNETIMEOUT);
+            RestClient client = new RestClient();
 
-            
+
 
             while (true)
             {
 
                 try
                 {
-                    
 
 
-                    string requestPS = await client.getAsync("http://" + VORNEIP + "/api/v0/process_state/active");
-                    string requestPR = await client.getAsync("http://" + VORNEIP + "/api/v0/part_run");
+
+                    string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
+                    string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
 
 
                     if (requestPS == string.Empty || requestPR == string.Empty)
@@ -244,29 +231,33 @@ namespace VorneAPITest
                 {
                     Console.WriteLine(e.ToString());
 
-                    
+
                     this.pID = "";
                     this.psR = "";
                     this.ps = "";
-                    
+
 
                 }
+
                 
+
+                Thread.Sleep(VORNEQUERYINTERVAL);
+
             }
 
-            
+
         }
 
 
         private void OnApplicationExit(object sender, EventArgs e)
-            // turns lights off when the program exits
+        // turns lights off when the program exits
         {
             this.changeColor("BLACK");
 
             Environment.Exit(Environment.ExitCode);
         }
 
-       
+
 
         private string getColor()
         {
@@ -275,7 +266,7 @@ namespace VorneAPITest
             if (this.stopped == false && this.tt < this.rollTime())
             {
                 return "BLACK";
-            }  
+            }
             else if (this.ps == "RUNNING")
             {
                 return "GREEN";
@@ -351,7 +342,7 @@ namespace VorneAPITest
             {
                 return System.Drawing.Color.LightGray;
             }
-            
+
 
         }
 
@@ -492,10 +483,10 @@ namespace VorneAPITest
             this.lblClock.Text = this.clockFromSec(this.tt);
         }
 
-        
+
 
         private void taktTimer_Tick(object sender, EventArgs e)
-        { 
+        {
 
             if (this.tt == 0)
                 this.tt = this.calcSec(this.hour, this.min, this.sec - 1);
@@ -504,14 +495,14 @@ namespace VorneAPITest
 
             this.lblClock.Text = this.clockFromSec(this.tt);
 
-            
-            
+
+
 
         }
 
         private void btnStart_Click(object sender, EventArgs e)
         {
-            
+
 
             if (this.calcSec(this.hour, this.min, this.sec) <= 10)
             {
@@ -523,7 +514,7 @@ namespace VorneAPITest
 
             this.stopped = false;
 
-            
+
 
             this.btnHrInc.Visible = false;
             this.btnHrDec.Visible = false;
@@ -532,7 +523,7 @@ namespace VorneAPITest
             this.btnSecInc.Visible = false;
             this.btnSecDec.Visible = false;
 
-            
+
 
         }
 
@@ -542,7 +533,7 @@ namespace VorneAPITest
 
             this.stopped = true;
 
-            
+
 
             this.tt = this.calcSec(this.hour, this.min, this.sec);
             this.lblClock.Text = this.clockFromSec(this.tt);
@@ -567,9 +558,18 @@ namespace VorneAPITest
             this.changeColor(this.getColor());
         }
 
+        private void tmrReq_Tick(object sender, EventArgs e)
+        {
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
         private void cbPorts_SelectedIndexChanged(object sender, EventArgs e)
         {
-           
+
         }
 
         private void updateHUD()
@@ -598,21 +598,21 @@ namespace VorneAPITest
 
             this.BackColor = this.colorFromPS(this.getColor());
 
-            
 
-            
+
+
         }
 
 
         private void timer_Tick(object sender, EventArgs e)
         {
             Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-            this.messageBytes = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(message));
+            this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
 
             this.updateHUD();
-           
+
         }
 
-       
+
     }
 }

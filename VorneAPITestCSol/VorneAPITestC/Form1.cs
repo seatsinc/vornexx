@@ -24,18 +24,16 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
-        const string SERVERIP = "127.0.0.1";
-        public static string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.15";
+        const string SERVERIP = "10.119.16.158";
+        public static string WCNAME = "3915";
+
 
         
         // keep ports all the same
         const int SERVERPORT = 50010; // the port the server LISTENS on
-        const int CLIENTPORT = 50012; // the port the client communicates through
-        const int TIMEOUT = 1000; // the time it takes for the client to realize that the server is offline
 
-
-
+        const int QUERYINTERVAL = 125;
         
         public string ps;
         public string color;
@@ -76,7 +74,6 @@ namespace VorneAPITestC
             listener.IsBackground = true;
             listener.Start();
 
-            
             timer.Start();
 
         }
@@ -89,64 +86,28 @@ namespace VorneAPITestC
         private void communicate()
         {
 
-            IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 0);
-            string serverMessage;
-            byte[] clientMessage = Encoding.Unicode.GetBytes("Hello from Client!");
+            
+
+            SyncClient sc = new SyncClient(SERVERIP, SERVERPORT);
 
             while (true)
             {
-                try
-                {
-
-                    using (UdpClient client = new UdpClient(CLIENTPORT))
-                    {
-                        try
-                        {
-                            
-                            client.Client.ReceiveTimeout = TIMEOUT;
-
-                            
-
-                            while (true)
-                            {
-
-                                client.Send(clientMessage, clientMessage.Length, SERVERIP, SERVERPORT);
-
-                                serverMessage = Encoding.Unicode.GetString(client.Receive(ref serverEP));
-
-                                Message message = JsonConvert.DeserializeObject<Message>(serverMessage);
 
 
-                                if (message == null)
-                                    throw new Exception();
+                Message message = sc.queryServer();
 
-                                this.pID = message.pID;
-                                this.tt = message.tt;
-                                this.color = message.color;
-                                this.ps = message.ps;
+   
+                
+                this.pID = message.pID;
+                this.tt = message.tt;
+                this.color = message.color;
+                this.ps = message.ps;
 
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
+                Thread.Sleep(QUERYINTERVAL);
 
-                            this.pID = "";
-                            this.ps = "CONNECTING...";
-                            this.color = "BLACK*";
-                            this.tt = 0;
-                        }
-                        finally
-                        {
-                            client.Close();
-                        }
-                    }
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine(exc.ToString());
-                }
-            }      
+            }
+
+
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -156,6 +117,7 @@ namespace VorneAPITestC
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
             this.lblPartID.Text = this.pID;
+
             if (this.ps == "CONNECTING...")
                 this.lblClock.Text = "        ";
             else

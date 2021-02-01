@@ -34,12 +34,15 @@ namespace VorneAPITestC
 
         private List<double> totalLaborHours = new List<double>();
 
+
+
         public Scoreboard(string vip, string workCenter)
         {
             InitializeComponent();
 
             this.VORNEIP = vip;
             this.wc = workCenter;
+
 
             
         }

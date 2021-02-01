@@ -9,32 +9,80 @@ using System.Net.Http;
 
 namespace VorneAPITest
 {
-    
+    public enum httpVerb
+    {
+        GET,
+        POST,
+        PUT,
+        DELETE
+    }
+
+
     public class RestClient
     {
-        private int timeout;
 
-        public RestClient(int t)
+        
+
+        public RestClient()
         {
-            this.timeout = t;
+
         }
 
 
-        public async Task<string> getAsync(string uri)
+        public string makeRequest(string endPoint, httpVerb httpMethod)
         {
+
+
+
+            System.Net.HttpWebRequest.DefaultWebProxy = null;
+            ServicePointManager.DefaultConnectionLimit = 20;
+            ServicePointManager.Expect100Continue = false;
+
+            string strResponseValue = string.Empty;
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endPoint);
+
+
+            request.Method = httpMethod.ToString();
+
             try
             {
-                using (HttpClient client = new HttpClient())
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    client.Timeout = TimeSpan.FromMilliseconds(this.timeout);
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new ApplicationException("error code " + response.StatusCode.ToString());
+                    }
+                    // Process the response stream... (could be JSON, XML or HTML etc...)
 
-                    return await client.GetStringAsync(uri);
+                    using (Stream responseStream = response.GetResponseStream())
+                    {
+                        if (responseStream != null)
+                        {
+                            using (StreamReader reader = new StreamReader(responseStream))
+                            {
+                                strResponseValue = reader.ReadToEnd();
+
+                                reader.Close();
+                            } // end of StreamReader
+                        }
+
+                        responseStream.Close();
+                    } // end of ResponseStream
+
+                    response.Close();
+
                 }
             }
             catch (Exception exc)
             {
-                return string.Empty;
+                strResponseValue = string.Empty;
             }
+
+
+
+            return strResponseValue;
+
         }
 
     }
