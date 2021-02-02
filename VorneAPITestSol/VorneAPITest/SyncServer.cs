@@ -72,6 +72,7 @@ namespace VorneAPITest
                         using (Socket handler = listener.Accept())
                         {
                             handler.ReceiveTimeout = this.timeout;
+                            handler.SendTimeout = this.timeout;
 
                             data = null;
 

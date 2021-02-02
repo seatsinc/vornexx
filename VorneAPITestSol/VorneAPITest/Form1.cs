@@ -15,6 +15,7 @@ using System.Net;
 using System.IO.Ports;
 using System.Threading;
 using System.IO;
+using System.Diagnostics;
 
 
 namespace VorneAPITest
@@ -167,16 +168,18 @@ namespace VorneAPITest
 
         private void listen()
         {
-
-            try
+            while (true)
             {
-                this.ss = new SyncServer(LISTENPORT, RECEIVETIMEOUT);
-                this.ss.listen();
+                try
+                {
+                    this.ss = new SyncServer(LISTENPORT, RECEIVETIMEOUT);
+                    this.ss.listen();
 
-            }
-            catch (Exception exc)
-            {
-                MessageBox.Show(exc.ToString());
+                }
+                catch (Exception exc)
+                {
+                    MessageBox.Show(exc.ToString());
+                }
             }
 
         }
@@ -254,7 +257,7 @@ namespace VorneAPITest
         {
             this.changeColor("BLACK");
 
-            Environment.Exit(Environment.ExitCode);
+            (Process.GetCurrentProcess()).Kill();
         }
 
 
