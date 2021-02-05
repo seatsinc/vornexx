@@ -28,18 +28,18 @@ namespace VorneAPITest
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
 
-        private SyncServer ss;
+        private SyncServer ss = new SyncServer(LISTENPORT, CLIENTTIMEOUT);
 
 
 
         // ip address of the vorne machine
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.13";
+        const string WCNAME = "3920";
 
 
-        private const int VORNEQUERYINTERVAL = 125;
-        private const int RECEIVETIMEOUT = 125;
+        private const int VORNEQUERYINTERVAL = 250;
+        private const int CLIENTTIMEOUT = 250;
 
 
 
@@ -58,7 +58,7 @@ namespace VorneAPITest
         private bool stopped = true;
 
 
-
+        
 
 
 
@@ -157,7 +157,7 @@ namespace VorneAPITest
 
 
 
-            Thread listenThread = new Thread(this.listen);
+            Thread listenThread = new Thread(this.ss.listen);
             listenThread.IsBackground = true;
             listenThread.Start();
 
@@ -166,23 +166,7 @@ namespace VorneAPITest
         }
 
 
-        private void listen()
-        {
-            while (true)
-            {
-                try
-                {
-                    this.ss = new SyncServer(LISTENPORT, RECEIVETIMEOUT);
-                    this.ss.listen();
-
-                }
-                catch (Exception exc)
-                {
-                    MessageBox.Show(exc.ToString());
-                }
-            }
-
-        }
+        
 
 
 

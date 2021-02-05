@@ -41,84 +41,129 @@ namespace VorneAPITest
         public void listen()
         {
 
-            // Data buffer for incoming data.  
-            byte[] bytes = new Byte[1024];
-
-            // Establish the local endpoint for the socket.  
-            // Dns.GetHostName returns the name of the
-            // host running the application.
-            IPAddress ipAddress = IPAddress.Any;
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, this.port);
-
-            // Create a TCP/IP socket.  
-            using (Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+            while (true)
             {
 
 
 
-                // Bind the socket to the local endpoint and
-                // listen for incoming connections.  
-                try
-                {
-                    listener.Bind(localEndPoint);
-                    listener.Listen(20);
+                // Establish the local endpoint for the socket.  
+                // Dns.GetHostName returns the name of the
+                // host running the application.
+                IPAddress ipAddress = IPAddress.Any;
+                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, this.port);
 
-                    // Start listening for connections.  
-                    while (true)
+
+
+
+
+                // Create a TCP/IP socket.  
+                using (Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+                {
+
+                    try
                     {
 
+                        listener.Bind(localEndPoint);
+                        listener.Listen(32);
 
-                        // Program is suspended while waiting for an incoming connection.  
-                        using (Socket handler = listener.Accept())
+                        while (true)
                         {
-                            handler.ReceiveTimeout = this.timeout;
-                            handler.SendTimeout = this.timeout;
 
-                            data = null;
+                            Socket handler = listener.Accept();
 
-                            // An incoming connection needs to be processed.  
-                            while (true)
-                            {
-                                int bytesRec = handler.Receive(bytes);
-                                data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                                if (data.IndexOf("<EOF>") > -1)
-                                {
-                                    break;
-                                }
-                            }
-
-
-
-                            if (this.relayMessage == null)
-                            {
-                                this.relayMessage = "";
-                            }
-
-                            // Echo the data back to the client.  
-                            byte[] msg = Encoding.ASCII.GetBytes(this.relayMessage);
-
-                            handler.Send(msg);
-                            handler.Shutdown(SocketShutdown.Both);
-                            handler.Close();
+                            Thread handlerThread = new Thread(() => this.handle(handler));
+                            handlerThread.IsBackground = true;
+                            handlerThread.Start();
                         }
-                        
-                       
-     
+
 
                     }
+                    
+
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+
+                    }
+                    finally
+                    {
+                        if (listener.Connected)
+                        {
+                            listener.Shutdown(SocketShutdown.Both);
+                            listener.Close();
+                        }
+                    }
+                }  
+            }
+        }
+
+
+        
+
+        private void handle(Socket handler)
+        {
+
+            using (handler)
+            {
+                try
+                {
+
+
+                    // Data buffer for incoming data.  
+                    byte[] bytes = new Byte[1024];
+
+                    handler.ReceiveTimeout = this.timeout;
+                    handler.SendTimeout = this.timeout;
+
+                    data = string.Empty;
+
+                    // An incoming connection needs to be processed.  
+                    do
+                    {
+                        if (handler.Connected)
+                            data += Encoding.ASCII.GetString(bytes, 0, handler.Receive(bytes));
+                        else
+                            throw new Exception("Connection lost!");
+
+                    } while (!data.Contains("<EOF>"));
+
+
+
+                    if (this.relayMessage == null)
+                    {
+                        this.relayMessage = "";
+                    }
+
+                    // Echo the data back to the client.  
+                    byte[] msg = Encoding.ASCII.GetBytes(this.relayMessage + "<EOF>");
+
+                    if (handler.Connected)
+                        handler.Send(msg);
+                    else
+                        throw new Exception("Connection lost!");
+                }
+                catch (Exception exc)
+                {
+
+                    Console.WriteLine(exc.ToString());
 
                 }
-                catch (Exception e)
+                finally
                 {
-                    Console.WriteLine(e.ToString());
+                    if (handler.Connected)
+                    {
+                        handler.Shutdown(SocketShutdown.Both);
+                        handler.Close();
+                    }
                 }
-                
             }
+            
+
+            // do not close or shutdown handler socket or else it might throw WSACancelBlockingCall
 
 
         }
 
 
-        
     }
 }

@@ -24,16 +24,17 @@ namespace VorneAPITestC
         // SERVERIP 127.0.0.1 if on local computer
         // else the ip address of the target computer
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.15";
-        const string SERVERIP = "10.119.16.158";
-        public static string WCNAME = "3915";
+        const string VORNEIP = "10.119.12.13";
+        const string SERVERIP = "10.119.16.46";
+        public static string WCNAME = "3920";
 
-
+        
         
         // keep ports all the same
         const int SERVERPORT = 50010; // the port the server LISTENS on
 
-        const int QUERYINTERVAL = 125;
+        const int QUERYINTERVAL = 250;
+        const int TIMEOUT = 250;
         
         public string ps;
         public string color;
@@ -88,7 +89,7 @@ namespace VorneAPITestC
 
             
 
-            SyncClient sc = new SyncClient(SERVERIP, SERVERPORT);
+            SyncClient sc = new SyncClient(SERVERIP, SERVERPORT, TIMEOUT);
 
             while (true)
             {
@@ -137,6 +138,7 @@ namespace VorneAPITestC
             }
 
 
+
             if (this.color == "BLACK")
             {
                 this.inRoll = true;
@@ -146,6 +148,7 @@ namespace VorneAPITestC
                 this.inRoll = false;
             }
 
+            
             
         }
 

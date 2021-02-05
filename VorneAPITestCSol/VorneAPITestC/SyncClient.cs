@@ -15,11 +15,13 @@ namespace VorneAPITestC
 
         private string remoteIP;
         private int remotePort;
+        private int timeout;
 
-        public SyncClient(string rIP, int rPort)
+        public SyncClient(string rIP, int rPort, int to)
         {
             this.remoteIP = rIP;
             this.remotePort = rPort;
+            this.timeout = to;
         }
 
 
@@ -32,49 +34,73 @@ namespace VorneAPITestC
             byte[] bytes = new byte[1024];
 
             // Connect to a remote device.  
-            try
+            // Establish the remote endpoint for the socket.  
+            // This example uses port 11000 on the local computer.  
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            IPAddress ipAddress = IPAddress.Parse(this.remoteIP);
+            IPEndPoint remoteEP = new IPEndPoint(ipAddress, this.remotePort);
+
+            // Create a TCP/IP  socket.  
+            using (Socket sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
             {
-                // Establish the remote endpoint for the socket.  
-                // This example uses port 11000 on the local computer.  
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                IPAddress ipAddress = IPAddress.Parse(this.remoteIP);
-                IPEndPoint remoteEP = new IPEndPoint(ipAddress, this.remotePort);
-
-                // Create a TCP/IP  socket.  
-                using (Socket sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+                try
                 {
-
-
-
                     // Connect the socket to the remote endpoint. Catch any errors.  
 
                     sender.Connect(remoteEP);
+
+                    sender.ReceiveTimeout = this.timeout;
+                    sender.SendTimeout = this.timeout;
 
 
                     // Encode the data string into a byte array.  
                     byte[] msg = Encoding.ASCII.GetBytes("<EOF>");
 
-                    // Send the data through the socket.  
-                    int bytesSent = sender.Send(msg);
+                    // Send the data through the socket.
+                    if (sender.Connected)
+                        sender.Send(msg);
+                    else
+                        throw new Exception("Connection lost!");
 
-                    // Receive the response from the remote device.  
-                    int bytesRec = sender.Receive(bytes);
-
-                    message = JsonConvert.DeserializeObject<Message>(Encoding.ASCII.GetString(bytes));
+                    // Receive the response from the remote device.
 
 
-                    // Release the socket.  
-                    sender.Shutdown(SocketShutdown.Both);
-                    sender.Close();
+
+                    string data = string.Empty;
+
+                    // An incoming connection needs to be processed.  
+                    do
+                    {
+                        if (sender.Connected)
+                            data += Encoding.ASCII.GetString(bytes, 0, sender.Receive(bytes));
+                        else
+                            throw new Exception("Connection lost!");
+
+                    } while (!data.Contains("<EOF>"));
+
+
+
+                    message = JsonConvert.DeserializeObject<Message>(data.Substring(0, data.Length - 5));
+
                 }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
+                finally
+                {
+                    if (sender.Connected)
+                    {
+                        sender.Shutdown(SocketShutdown.Both);
+                        sender.Close();
+                    }
+                }
+
+
+            }
 
                 
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
 
             if (message == null)
             {
