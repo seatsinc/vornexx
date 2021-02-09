@@ -28,15 +28,17 @@ namespace VorneAPITest
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
 
-        private SyncServer ss = new SyncServer(LISTENPORT, CLIENTTIMEOUT);
+        private AsyncServer ss = new AsyncServer(LISTENPORT, CLIENTTIMEOUT);
 
-
+        
 
         // ip address of the vorne machine
         // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.13";
-        const string WCNAME = "3920";
+        const string VORNEIP = "10.119.12.15";
+        const string WCNAME = "3915";
 
+        const int LIGHTTIMERINTERVAL = 1500;
+        const string LIGHTPORT = "COM3";
 
         private const int VORNEQUERYINTERVAL = 250;
         private const int CLIENTTIMEOUT = 250;
@@ -58,7 +60,6 @@ namespace VorneAPITest
         private bool stopped = true;
 
 
-        
 
 
 
@@ -115,19 +116,8 @@ namespace VorneAPITest
             this.btnStart.Location = new Point(wa.Left + this.Width / 2 - this.btnStart.Width, wa.Top + this.Height - this.btnStart.Height - 10);
             this.btnStop.Location = new Point(wa.Left + this.Width / 2, wa.Top + this.Height - this.btnStop.Height - 10);
 
-            this.cbPorts.Location = new Point(wa.Left + this.Width / 2 - this.cbPorts.Width / 2, wa.Top + 10);
-            
+           
 
-
-
-
-            // populate ports in combo box
-            this.populatePorts();
-
-            if (this.cbPorts.SelectedItem == null)
-            {
-                MessageBox.Show("Error: No serial ports detected. Plug in ports and restart.");
-            }
 
 
 
@@ -137,29 +127,20 @@ namespace VorneAPITest
             this.BringToFront();
             this.TopMost = true;
 
-            Thread vorneQueryThread = new Thread(this.queryVorne);
-            vorneQueryThread.IsBackground = true;
-            vorneQueryThread.Start();
+
+            this.queryVorneAsync();
+
+            this.updateHUDAsync();
 
 
-            timer.Start();
-
-
-            // light timer must be 1500
-            lightTimer.Interval = 1500;
-            lightTimer.Start();
+           
+            this.changeColorAsync();
 
 
 
-
-            // binding listener to the listening port
-
+            this.ss.listen();
 
 
-
-            Thread listenThread = new Thread(this.ss.listen);
-            listenThread.IsBackground = true;
-            listenThread.Start();
 
 
 
@@ -178,15 +159,17 @@ namespace VorneAPITest
 
 
 
-        private void queryVorne()
+        private async void queryVorneAsync()
         {
-            // vorne communication
-            RestClient client = new RestClient();
-
-
-
-            while (true)
+            
+            await Task.Run(() =>
             {
+
+                
+                // vorne communication
+                RestClient client = new RestClient();
+
+
 
                 try
                 {
@@ -225,12 +208,20 @@ namespace VorneAPITest
 
 
                 }
+                finally
+                {
+                    Thread.Sleep(VORNEQUERYINTERVAL);
+                    this.queryVorneAsync();
 
-                
+                }
 
-                Thread.Sleep(VORNEQUERYINTERVAL);
 
-            }
+            });
+
+            
+            
+
+            
 
 
         }
@@ -239,9 +230,24 @@ namespace VorneAPITest
         private void OnApplicationExit(object sender, EventArgs e)
         // turns lights off when the program exits
         {
-            this.changeColor("BLACK");
+            try
+            {
+                SerialPort p = new SerialPort(LIGHTPORT, 9600);
 
-            (Process.GetCurrentProcess()).Kill();
+                p.Open();
+                p.Write("BLACK");
+                p.Close();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Could not write to COM3");
+            }
+            finally
+            {
+                (Process.GetCurrentProcess()).Kill();
+            }
+
+            
         }
 
 
@@ -278,33 +284,44 @@ namespace VorneAPITest
             }
         }
 
-        private void changeColor(string color)
+        private async void changeColorAsync()
         {
-
-            if (this.cbPorts.SelectedItem == null)
+            await Task.Run(() =>
             {
-                return;
-            }
+                
 
-            try
-            {
-                SerialPort p = new SerialPort(this.cbPorts.SelectedItem.ToString(), 9600);
-
-                p.Open();
-
-                if (color == "BLACK*")
+                try
                 {
-                    color = "BLACK";
+
+                    string color = this.getColor();
+
+                    SerialPort p = new SerialPort(LIGHTPORT, 9600);
+
+                    p.Open();
+
+                    if (color == "BLACK*")
+                    {
+                        color = "BLACK";
+                    }
+
+                    p.Write(color);
+                    p.Close();
+
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
+                finally
+                {
+                    Thread.Sleep(LIGHTTIMERINTERVAL);
+                    this.changeColorAsync();
+
                 }
 
-                p.Write(color);
-                p.Close();
+            });
 
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc.ToString());
-            }
+            
         }
 
         private System.Drawing.Color colorFromPS(string ps)
@@ -333,23 +350,6 @@ namespace VorneAPITest
 
         }
 
-        private void populatePorts()
-        {
-
-            try
-            {
-
-                foreach (string portName in SerialPort.GetPortNames())
-                {
-                    this.cbPorts.Items.Add(portName);
-                    this.cbPorts.SelectedIndex = 0;
-                }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc.ToString());
-            }
-        }
 
 
         private string clockFromSec(double secs)
@@ -540,65 +540,59 @@ namespace VorneAPITest
             return (hour * 3600) + (min * 60) + sec;
         }
 
-        private void lightTimer_Tick(object sender, EventArgs e)
+
+       
+        private async void updateHUDAsync()
         {
-            this.changeColor(this.getColor());
-        }
-
-        private void tmrReq_Tick(object sender, EventArgs e)
-        {
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void cbPorts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void updateHUD()
-        {
-
-
-
-            if (this.tt < this.rollTime() && this.stopped == false)
-                this.lblPS.Text = "ROLL!";
-            else
-                this.lblPS.Text = this.ps;
-
-            this.lblPartID.Text = this.pID;
-
-            this.lblTime.Text = DateTime.Now.ToLongTimeString();
-
-
-            if (this.ps == "DOWN")
+            
+            
+            await Task.Run(() =>
             {
-                // special case
-                string downReason = this.psR;
-
-                this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
-
-            }
-
-            this.BackColor = this.colorFromPS(this.getColor());
+                
+                this.Invoke((System.Action)(() =>
+                {
 
 
+                    if (this.tt < this.rollTime() && this.stopped == false)
+                        this.lblPS.Text = "ROLL!";
+                    else
+                        this.lblPS.Text = this.ps;
+
+                    this.lblPartID.Text = this.pID;
+
+                    this.lblTime.Text = DateTime.Now.ToLongTimeString();
+
+
+                    if (this.ps == "DOWN")
+                    {
+                    // special case
+                    string downReason = this.psR;
+
+                        this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
+
+                    }
+
+                    this.BackColor = this.colorFromPS(this.getColor());
+
+                }));
+
+                Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+
+                
+                
+                Thread.Sleep(VORNEQUERYINTERVAL);
+
+                this.updateHUDAsync();
+                
+
+            });
+
+            
 
 
         }
 
-
-        private void timer_Tick(object sender, EventArgs e)
-        {
-            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-            this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
-
-            this.updateHUD();
-
-        }
 
 
     }

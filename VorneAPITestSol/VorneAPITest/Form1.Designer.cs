@@ -30,7 +30,6 @@ namespace VorneAPITest
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.timer = new System.Windows.Forms.Timer(this.components);
             this.lblWC = new System.Windows.Forms.Label();
             this.lblClock = new System.Windows.Forms.Label();
             this.lblPS = new System.Windows.Forms.Label();
@@ -45,14 +44,7 @@ namespace VorneAPITest
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.taktTimer = new System.Windows.Forms.Timer(this.components);
-            this.cbPorts = new System.Windows.Forms.ComboBox();
-            this.lightTimer = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
-            // 
-            // timer
-            // 
-            this.timer.Interval = 1;
-            this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
             // lblWC
             // 
@@ -197,28 +189,11 @@ namespace VorneAPITest
             this.taktTimer.Interval = 1000;
             this.taktTimer.Tick += new System.EventHandler(this.taktTimer_Tick);
             // 
-            // cbPorts
-            // 
-            this.cbPorts.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cbPorts.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbPorts.FormattingEnabled = true;
-            this.cbPorts.Location = new System.Drawing.Point(794, 756);
-            this.cbPorts.Name = "cbPorts";
-            this.cbPorts.Size = new System.Drawing.Size(89, 32);
-            this.cbPorts.TabIndex = 22;
-            this.cbPorts.SelectedIndexChanged += new System.EventHandler(this.cbPorts_SelectedIndexChanged);
-            // 
-            // lightTimer
-            // 
-            this.lightTimer.Interval = 1500;
-            this.lightTimer.Tick += new System.EventHandler(this.lightTimer_Tick);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
-            this.Controls.Add(this.cbPorts);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.btnSecDec);
@@ -242,7 +217,6 @@ namespace VorneAPITest
         }
 
         #endregion
-        private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.Label lblWC;
         private System.Windows.Forms.Label lblClock;
         private System.Windows.Forms.Label lblPS;
@@ -257,8 +231,6 @@ namespace VorneAPITest
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Timer taktTimer;
-        private System.Windows.Forms.ComboBox cbPorts;
-        private System.Windows.Forms.Timer lightTimer;
     }
 }
 
