@@ -86,25 +86,15 @@ namespace VorneAPITestC
                 catch (Exception exc)
                 {
                     Console.WriteLine(exc.ToString());
-                }
-                finally
-                {
-                    if (sender.Connected)
-                    {
-                        sender.Shutdown(SocketShutdown.Both);
-                        sender.Close();
-                    }
-                }
 
-
+                    message = null;
+                }
             }
-
-                
 
 
             if (message == null)
             {
-                return new Message("CONNECTING...", "BLACK*", "", 0);
+                return new Message("OFFLINE", "BLACK*", "", 0);
             }
             else
             {

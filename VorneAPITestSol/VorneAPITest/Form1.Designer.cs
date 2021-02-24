@@ -44,6 +44,8 @@ namespace VorneAPITest
             this.btnStart = new System.Windows.Forms.Button();
             this.btnStop = new System.Windows.Forms.Button();
             this.taktTimer = new System.Windows.Forms.Timer(this.components);
+            this.pbLogo = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).BeginInit();
             this.SuspendLayout();
             // 
             // lblWC
@@ -189,11 +191,20 @@ namespace VorneAPITest
             this.taktTimer.Interval = 1000;
             this.taktTimer.Tick += new System.EventHandler(this.taktTimer_Tick);
             // 
+            // pbLogo
+            // 
+            this.pbLogo.Location = new System.Drawing.Point(516, 5);
+            this.pbLogo.Name = "pbLogo";
+            this.pbLogo.Size = new System.Drawing.Size(102, 48);
+            this.pbLogo.TabIndex = 22;
+            this.pbLogo.TabStop = false;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.pbLogo);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
             this.Controls.Add(this.btnSecDec);
@@ -211,6 +222,7 @@ namespace VorneAPITest
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Load += new System.EventHandler(this.Form1_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -231,6 +243,7 @@ namespace VorneAPITest
         private System.Windows.Forms.Button btnStart;
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Timer taktTimer;
+        private System.Windows.Forms.PictureBox pbLogo;
     }
 }
 

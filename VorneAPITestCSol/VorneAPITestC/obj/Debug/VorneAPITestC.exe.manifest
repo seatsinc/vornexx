@@ -54,17 +54,26 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITestC.exe" size="25528">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITestC.exe" size="27576">
       <assemblyIdentity name="VorneAPITestC" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>YiUXaCLdbPufthg1ayeHIAVUUi5k1AHFNusAQQPf9QI=</dsig:DigestValue>
+        <dsig:DigestValue>MRC6U+/LmrvhUTHA4n4tj1ODLE8gDojQZl/6KsBx2X8=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
+  <file name="CONSTANTS.txt" size="114">
+    <hash>
+      <dsig:Transforms>
+        <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
+      </dsig:Transforms>
+      <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
+      <dsig:DigestValue>akgw07cV7IbgOHfhYXwAA/47t5w9doXUwdQd4BqPG0U=</dsig:DigestValue>
+    </hash>
+  </file>
   <file name="resources\audio\BEEP.wav" size="109624">
     <hash>
       <dsig:Transforms>

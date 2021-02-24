@@ -28,25 +28,31 @@ namespace VorneAPITest
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         const int ROLLDIVISOR = 10;
 
-        private AsyncServer ss = new AsyncServer(LISTENPORT, CLIENTTIMEOUT);
+        private AsyncServer ss;
 
-        
+
 
         // ip address of the vorne machine
-        // ONLY CHANGE THESE VALUES
-        const string VORNEIP = "10.119.12.15";
-        const string WCNAME = "3915";
+        // these will be the values read in from a text file with Form1.loadConstants
+        string WCNAME;
+        string VORNEIP;
+        int LISTENPORT; // the port that the server listens on
+        string LIGHTPORT;
+
+
+
+
 
         const int LIGHTTIMERINTERVAL = 1500;
-        const string LIGHTPORT = "COM3";
+        
 
-        private const int VORNEQUERYINTERVAL = 250;
-        private const int CLIENTTIMEOUT = 250;
+        private const int VORNEQUERYINTERVAL = 1000;
+        private const int CLIENTTIMEOUT = 150;
+        private const int CLIENTQUERYINTERVAL = 16;
 
 
 
-        // keep ports the same
-        const int LISTENPORT = 50010; // the port that the server listens on
+        
 
         // keeps track of the production state 
         private string ps; // production state
@@ -74,6 +80,8 @@ namespace VorneAPITest
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.loadConstants();
+
             // initialize partID and productionState
             this.pID = "NA";
             this.ps = "NA";
@@ -97,6 +105,20 @@ namespace VorneAPITest
             this.Height = wa.Height / 3;
             this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
             //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+
+            // adding an image
+            Bitmap image = (Bitmap)Image.FromFile(@"resources\images\logo.png");
+
+
+            pbLogo.Image = image;
+            pbLogo.BackColor = Color.Transparent;
+
+
+
+            pbLogo.Location = new Point((this.Width / 2) - (this.pbLogo.Width / 2), this.Height / 30);
+            // end of adding image
+
+
 
             // aligning
             this.lblClock.Location = new Point(wa.Left + this.Width / 2 - this.lblClock.Width / 2, wa.Top + this.Height / 2 - this.lblClock.Height / 2);
@@ -137,7 +159,7 @@ namespace VorneAPITest
             this.changeColorAsync();
 
 
-
+            this.ss = new AsyncServer(LISTENPORT, CLIENTTIMEOUT);
             this.ss.listen();
 
 
@@ -147,8 +169,38 @@ namespace VorneAPITest
         }
 
 
-        
 
+        private void loadConstants()
+        {
+            try
+            {
+
+
+                string fileName = "CONSTANTS.txt";
+
+                List<string> lines = new List<string>();
+
+                lines = File.ReadAllLines(fileName).ToList<string>();
+
+
+                List<List<string>> sl = new List<List<string>>();
+
+                foreach (string line in lines)
+                    sl.Add(line.Split(':').ToList<string>());
+
+                this.WCNAME = sl[0][1].Trim();
+                this.VORNEIP = sl[1][1].Trim();
+                this.LISTENPORT = Int32.Parse(sl[2][1].Trim());
+                this.LIGHTPORT = sl[3][1].Trim();
+
+
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("Error loading constants: " + exc.ToString());
+                Application.Exit();
+            }
+        }
 
 
 
@@ -497,6 +549,8 @@ namespace VorneAPITest
                 return;
             }
 
+            this.btnStart.Visible = false;
+
             this.taktTimer.Start();
 
             this.stopped = false;
@@ -516,6 +570,8 @@ namespace VorneAPITest
 
         private void btnStop_Click(object sender, EventArgs e)
         {
+            this.btnStart.Visible = true;
+
             this.taktTimer.Stop();
 
             this.stopped = true;
@@ -548,42 +604,54 @@ namespace VorneAPITest
             
             await Task.Run(() =>
             {
-                
-                this.Invoke((System.Action)(() =>
+                try
                 {
 
 
-                    if (this.tt < this.rollTime() && this.stopped == false)
-                        this.lblPS.Text = "ROLL!";
-                    else
-                        this.lblPS.Text = this.ps;
-
-                    this.lblPartID.Text = this.pID;
-
-                    this.lblTime.Text = DateTime.Now.ToLongTimeString();
-
-
-                    if (this.ps == "DOWN")
+                    this.Invoke((System.Action)(() =>
                     {
-                    // special case
-                    string downReason = this.psR;
 
-                        this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
 
-                    }
+                        if (this.tt < this.rollTime() && this.stopped == false)
+                            this.lblPS.Text = "ROLL!";
+                        else
+                            this.lblPS.Text = this.ps;
 
-                    this.BackColor = this.colorFromPS(this.getColor());
+                        this.lblPartID.Text = this.pID;
 
-                }));
+                        this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
-                Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-                this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+
+                        if (this.ps == "DOWN")
+                        {
+                        // special case
+                        string downReason = this.psR;
+
+                            this.lblPS.Text = Util.replAwBStr(downReason, '_', ' ');
+
+                        }
+
+                        this.BackColor = this.colorFromPS(this.getColor());
+
+                    }));
+                }
+                catch (Exception exc)
+                {
+                    Console.WriteLine(exc.ToString());
+                }
+                finally
+                {
+                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                    this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+
+
+
+                    Thread.Sleep(CLIENTQUERYINTERVAL);
+
+                    this.updateHUDAsync();
+                }
 
                 
-                
-                Thread.Sleep(VORNEQUERYINTERVAL);
-
-                this.updateHUDAsync();
                 
 
             });

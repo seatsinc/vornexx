@@ -29,13 +29,13 @@ namespace VorneAPITestC
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
             this.lblPS = new System.Windows.Forms.Label();
             this.lblPartID = new System.Windows.Forms.Label();
             this.lblClock = new System.Windows.Forms.Label();
             this.lblTime = new System.Windows.Forms.Label();
             this.lblWC = new System.Windows.Forms.Label();
-            this.timer = new System.Windows.Forms.Timer(this.components);
+            this.pbLogo = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).BeginInit();
             this.SuspendLayout();
             // 
             // lblPS
@@ -89,16 +89,20 @@ namespace VorneAPITestC
             this.lblWC.TabIndex = 4;
             this.lblWC.Text = "WC";
             // 
-            // timer
+            // pbLogo
             // 
-            this.timer.Interval = 1;
-            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            this.pbLogo.Location = new System.Drawing.Point(366, 30);
+            this.pbLogo.Name = "pbLogo";
+            this.pbLogo.Size = new System.Drawing.Size(102, 48);
+            this.pbLogo.TabIndex = 5;
+            this.pbLogo.TabStop = false;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(855, 515);
+            this.Controls.Add(this.pbLogo);
             this.Controls.Add(this.lblWC);
             this.Controls.Add(this.lblTime);
             this.Controls.Add(this.lblClock);
@@ -108,6 +112,7 @@ namespace VorneAPITestC
             this.Name = "Form1";
             this.Text = "Form1";
             this.Load += new System.EventHandler(this.Form1_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -120,7 +125,7 @@ namespace VorneAPITestC
         private System.Windows.Forms.Label lblClock;
         private System.Windows.Forms.Label lblTime;
         private System.Windows.Forms.Label lblWC;
-        private System.Windows.Forms.Timer timer;
+        private System.Windows.Forms.PictureBox pbLogo;
     }
 }
 
