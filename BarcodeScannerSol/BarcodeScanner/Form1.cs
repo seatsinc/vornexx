@@ -25,12 +25,11 @@ namespace BarcodeScanner
         List<string> barcodes = new List<string>();
 
         private string VORNEIP;
+        private string wc;
 
 
 
         List<string> bcPrefixes = new List<string>();
-
-        List<int> foundIndices = new List<int>();
 
         private string keyPresses = "";
         
@@ -52,6 +51,7 @@ namespace BarcodeScanner
             this.loadConstants();
             this.loadbcPrefixes();
 
+            this.Text = this.wc + " Barcode Scanner";
 
         }
 
@@ -99,6 +99,7 @@ namespace BarcodeScanner
                     sl.Add(line.Split(':').ToList<string>());
 
                 this.VORNEIP = sl[0][1].Trim();
+                this.wc = sl[1][1].Trim();
 
 
             }
@@ -196,6 +197,7 @@ namespace BarcodeScanner
 
                             if (this.keyPresses[serialIndex] == '\n')
                             {
+                                potentialBC = potentialBC.Substring(0, potentialBC.Length - 1);
                                 validBC = true;
                                 break;
                             }
@@ -242,11 +244,12 @@ namespace BarcodeScanner
                         
                         // +1 good count query
                         // COMMENT OUT WHEN TESTING
-
+                        
                         string message1 = $"http://{VORNEIP}/api/v0/inputs/1";
                         byte[] postData1 = Encoding.ASCII.GetBytes("{}");
 
                         rc.makeRequest(message1, httpVerb.POST, postData1);
+                        
                         // end of good count query
 
                         
@@ -255,6 +258,7 @@ namespace BarcodeScanner
 
                         
                         string message2 = $"http://{VORNEIP}/api/v0/scoreboard/overlay";
+                        
                         byte[] postData2 = Encoding.ASCII.GetBytes($"{{\"duration\":3,\"text\":[\"+1\",\"{potentialBC}\",\"New scan!\"]}}");
 
                         rc.makeRequest(message2, httpVerb.POST, postData2);

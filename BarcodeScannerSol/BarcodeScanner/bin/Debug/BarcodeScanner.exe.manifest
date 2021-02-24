@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="BarcodeScanner.exe" size="13752">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="BarcodeScanner.exe" size="14264">
       <assemblyIdentity name="BarcodeScanner" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>qdMtF0CNvF+hOk8MoFNzyq3KUfQT+/7y9VZegfnn1/Y=</dsig:DigestValue>
+        <dsig:DigestValue>kbKzqjTPp55k2q2t5cA9XudC+EA/1NM+c29otB5NbHA=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -74,13 +74,13 @@
       <dsig:DigestValue>R+Wg8QGvQVHX8T0ta/qbhH1bXkqY0fRnS3wBV3J0bN8=</dsig:DigestValue>
     </hash>
   </file>
-  <file name="CONSTANTS.txt" size="25">
+  <file name="CONSTANTS.txt" size="44">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>YIyJLB2dK4BCxGcSQoRrQVUXGD0gtQiAxnHRLm9eW6Y=</dsig:DigestValue>
+      <dsig:DigestValue>XIEsfn/1VZ5Dr8nXy0GsHW66B8WJuZaJme0AAexc/a8=</dsig:DigestValue>
     </hash>
   </file>
   <file name="PREFIXES.txt" size="9390">
