@@ -31,7 +31,6 @@ namespace VorneAPITest
         private AsyncServer ss;
 
 
-
         // ip address of the vorne machine
         // these will be the values read in from a text file with Form1.loadConstants
         string WCNAME;
@@ -41,9 +40,7 @@ namespace VorneAPITest
 
 
 
-
-
-        const int LIGHTTIMERINTERVAL = 1500;
+        const int LIGHTTIMERINTERVAL = 1000;
         
 
         private const int VORNEQUERYINTERVAL = 1000;
@@ -81,6 +78,11 @@ namespace VorneAPITest
         private void Form1_Load(object sender, EventArgs e)
         {
             this.loadConstants();
+
+
+
+
+
 
             // initialize partID and productionState
             this.pID = "NA";
@@ -282,24 +284,43 @@ namespace VorneAPITest
         private void OnApplicationExit(object sender, EventArgs e)
         // turns lights off when the program exits
         {
+
+
+
             try
             {
-                SerialPort p = new SerialPort(LIGHTPORT, 9600);
 
-                p.Open();
-                p.Write("BLACK");
-                p.Close();
+                using (SerialPort port = new SerialPort())
+                {
+
+                    port.PortName = LIGHTPORT;
+                    port.BaudRate = 9600;
+                    port.DataBits = 8;
+                    port.Parity = Parity.None;
+                    port.StopBits = StopBits.One;
+                    port.RtsEnable = true;
+                    port.WriteTimeout = LIGHTTIMERINTERVAL;
+                    
+                    
+                    port.Open();
+
+
+                    port.Write("BLACK");
+
+                    port.Close();
+
+                }
             }
             catch (Exception exc)
             {
-                Console.WriteLine("Could not write to COM3");
+                //Console.WriteLine(exc.ToString());
             }
             finally
             {
-                (Process.GetCurrentProcess()).Kill();
+                Process.GetCurrentProcess().Kill();
             }
-
             
+
         }
 
 
@@ -341,23 +362,34 @@ namespace VorneAPITest
             await Task.Run(() =>
             {
                 
+                string color = this.getColor();
 
                 try
                 {
-
-                    string color = this.getColor();
-
-                    SerialPort p = new SerialPort(LIGHTPORT, 9600);
-
-                    p.Open();
-
-                    if (color == "BLACK*")
+                    using (SerialPort p = new SerialPort())
                     {
-                        color = "BLACK";
+
+                        p.PortName = LIGHTPORT;
+                        p.BaudRate = 9600;
+                        p.DataBits = 8;
+                        p.Parity = Parity.None;
+                        p.StopBits = StopBits.One;
+                        p.RtsEnable = true;
+                        p.WriteTimeout = LIGHTTIMERINTERVAL;
+
+
+                        p.Open();
+
+
+                        if (color == "BLACK*")
+                            color = "BLACK";
+
+                        p.Write(color);
+
+                        p.Close();
+
                     }
 
-                    p.Write(color);
-                    p.Close();
 
                 }
                 catch (Exception exc)
@@ -366,9 +398,9 @@ namespace VorneAPITest
                 }
                 finally
                 {
+
                     Thread.Sleep(LIGHTTIMERINTERVAL);
                     this.changeColorAsync();
-
                 }
 
             });
@@ -565,6 +597,17 @@ namespace VorneAPITest
             this.btnSecDec.Visible = false;
 
 
+
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+
+
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
 
         }
 
