@@ -45,7 +45,7 @@ namespace VorneAPITest
 
         private const int VORNEQUERYINTERVAL = 1000;
         private const int CLIENTTIMEOUT = 150;
-        private const int CLIENTQUERYINTERVAL = 16;
+        private const int CLIENTQUERYINTERVAL = 200;
 
 
 

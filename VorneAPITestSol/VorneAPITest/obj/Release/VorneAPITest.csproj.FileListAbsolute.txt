@@ -1,3 +1,4 @@
+C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\bin\Release\CONSTANTS.txt
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\bin\Release\resources\audio\BEEP.wav
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\bin\Release\VorneAPITest.exe.config
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\bin\Release\VorneAPITest.exe.manifest
@@ -15,5 +16,3 @@ C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPIT
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.csproj.CopyComplete
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.exe
 C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.pdb
-C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\bin\Release\CONSTANTS.txt
-C:\Users\jbenson\Documents\cache\vorne++\v-18\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.csprojAssemblyReference.cache

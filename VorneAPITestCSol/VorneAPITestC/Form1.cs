@@ -31,7 +31,7 @@ namespace VorneAPITestC
         public static string WCNAME;
         int SERVERPORT; // the port the server LISTENS on
 
-        const int QUERYINTERVAL = 16;
+        const int QUERYINTERVAL = 200;
         const int TIMEOUT = 150;
         
         public string ps;
