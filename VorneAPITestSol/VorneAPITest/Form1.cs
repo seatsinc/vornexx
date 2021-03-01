@@ -37,15 +37,11 @@ namespace VorneAPITest
         string VORNEIP;
         int LISTENPORT; // the port that the server listens on
         string LIGHTPORT;
-
-
-
-        const int LIGHTTIMERINTERVAL = 1000;
         
 
         private const int VORNEQUERYINTERVAL = 1000;
         private const int CLIENTTIMEOUT = 150;
-        private const int CLIENTQUERYINTERVAL = 200;
+        private const int CLIENTQUERYINTERVAL = 250;
 
 
 
@@ -62,7 +58,7 @@ namespace VorneAPITest
 
         private bool stopped = true;
 
-
+        private SerialPort p = new SerialPort();
 
 
 
@@ -79,6 +75,17 @@ namespace VorneAPITest
         {
             this.loadConstants();
 
+
+            p.PortName = LIGHTPORT;
+            p.BaudRate = 9600;
+            p.DataBits = 8;
+            p.Parity = Parity.None;
+            p.StopBits = StopBits.One;
+            p.RtsEnable = true;
+            p.DiscardNull = true;
+            p.ReadTimeout = VORNEQUERYINTERVAL;
+            p.WriteTimeout = VORNEQUERYINTERVAL;
+           
 
 
 
@@ -289,27 +296,17 @@ namespace VorneAPITest
 
             try
             {
+                if (!p.IsOpen)
+                    p.Open();
 
-                using (SerialPort port = new SerialPort())
-                {
+                if (p.IsOpen)
+                    p.Write('x'.ToString());
+                else
+                    throw new Exception("Serial port is not open");
 
-                    port.PortName = LIGHTPORT;
-                    port.BaudRate = 9600;
-                    port.DataBits = 8;
-                    port.Parity = Parity.None;
-                    port.StopBits = StopBits.One;
-                    port.RtsEnable = true;
-                    port.WriteTimeout = LIGHTTIMERINTERVAL;
-                    
-                    
-                    port.Open();
+                p.Close();
 
-
-                    port.Write("BLACK");
-
-                    port.Close();
-
-                }
+                
             }
             catch (Exception exc)
             {
@@ -319,7 +316,6 @@ namespace VorneAPITest
             {
                 Process.GetCurrentProcess().Kill();
             }
-            
 
         }
 
@@ -357,49 +353,67 @@ namespace VorneAPITest
             }
         }
 
+        private char getArduinoColor(string color)
+        {
+            if (color == "RED")
+            {
+                return 'r';
+            }
+            else if (color == "GREEN")
+            {
+                return 'g';
+            }
+            else if (color == "BLUE")
+            {
+                return 'b';
+            }
+            else if (color == "YELLOW")
+            {
+                return 'y';
+            }
+            else
+            {
+                return 'x';
+            }
+
+        }
+
         private async void changeColorAsync()
         {
             await Task.Run(() =>
             {
                 
-                string color = this.getColor();
+                char color = this.getArduinoColor(this.getColor());
 
                 try
                 {
-                    using (SerialPort p = new SerialPort())
-                    {
 
-                        p.PortName = LIGHTPORT;
-                        p.BaudRate = 9600;
-                        p.DataBits = 8;
-                        p.Parity = Parity.None;
-                        p.StopBits = StopBits.One;
-                        p.RtsEnable = true;
-                        p.WriteTimeout = LIGHTTIMERINTERVAL;
+                    
 
-
+                    if (!p.IsOpen)
                         p.Open();
 
 
-                        if (color == "BLACK*")
-                            color = "BLACK";
-
-                        p.Write(color);
-
-                        p.Close();
-
+                    if (p.IsOpen)
+                    {
+                        p.Write(color.ToString());
                     }
+                    else
+                        throw new Exception("Serial port is not open");
 
+
+                    Console.WriteLine((char)p.ReadChar());
+
+                    p.Close();
 
                 }
                 catch (Exception exc)
                 {
-                    Console.WriteLine(exc.ToString());
+                    Thread.Sleep(VORNEQUERYINTERVAL);
                 }
                 finally
                 {
 
-                    Thread.Sleep(LIGHTTIMERINTERVAL);
                     this.changeColorAsync();
                 }
 
