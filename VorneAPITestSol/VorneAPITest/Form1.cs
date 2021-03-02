@@ -112,8 +112,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // adding an image
             Bitmap image = (Bitmap)Image.FromFile(@"resources\images\logo.png");
@@ -305,8 +305,6 @@ namespace VorneAPITest
                     throw new Exception("Serial port is not open");
 
                 p.Close();
-
-                
             }
             catch (Exception exc)
             {
@@ -404,7 +402,7 @@ namespace VorneAPITest
 
                     Console.WriteLine((char)p.ReadChar());
 
-                    p.Close();
+                    
 
                 }
                 catch (Exception exc)

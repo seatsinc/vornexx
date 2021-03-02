@@ -18,6 +18,7 @@ void setup() {
   delay(3000);
 
   Serial.begin(9600);
+  Serial.setTimeout(1000);
 
   pinMode(GREEN_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);

@@ -202,7 +202,8 @@ namespace VorneAPITestC
 
             this.BackColor = this.colorFromPS(this.color);
 
-            if (this.color != "BLACK" && this.inRoll == true)
+            // BLACK** means that it is not connected to the VORNE
+            if (this.color != "BLACK" && this.color != "BLACK**" && this.inRoll == true)
             {
                 SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
                 sp.Play();

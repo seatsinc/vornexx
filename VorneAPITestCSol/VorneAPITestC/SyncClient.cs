@@ -94,7 +94,7 @@ namespace VorneAPITestC
 
             if (message == null)
             {
-                return new Message("OFFLINE", "BLACK*", "", 0);
+                return new Message("OFFLINE", "BLACK**", "", 0);
             }
             else
             {
