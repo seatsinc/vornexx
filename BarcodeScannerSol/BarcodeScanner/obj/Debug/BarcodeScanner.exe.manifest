@@ -42,14 +42,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="BarcodeScanner.exe" size="14264">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="BarcodeScanner.exe" size="15288">
       <assemblyIdentity name="BarcodeScanner" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>kbKzqjTPp55k2q2t5cA9XudC+EA/1NM+c29otB5NbHA=</dsig:DigestValue>
+        <dsig:DigestValue>XRcVFOjwkc6I7R5yBJ/tVAXE8EiESEruB2znQM/kEm4=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

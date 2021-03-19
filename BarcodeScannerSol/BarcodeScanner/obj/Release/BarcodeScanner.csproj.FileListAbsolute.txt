@@ -39,7 +39,6 @@ C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\Bar
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\bin\Release\BarcodeScanner.exe
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\bin\Release\BarcodeScanner.pdb
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\bin\Release\Gma.System.MouseKeyHook.dll
-C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\obj\Release\BarcodeScanner.csprojAssemblyReference.cache
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\obj\Release\BarcodeScanner.Form1.resources
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\obj\Release\BarcodeScanner.Properties.Resources.resources
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\BarcodeScannerSol\BarcodeScanner\obj\Release\BarcodeScanner.csproj.GenerateResource.cache
