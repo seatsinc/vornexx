@@ -57,10 +57,6 @@ namespace BarcodeScanner
 
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new ApplicationException("error code " + response.StatusCode.ToString());
-                    }
 
                     // Process the response stream... (could be JSON, XML or HTML etc...)
 
