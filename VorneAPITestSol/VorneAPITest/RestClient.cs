@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.IO;
 using System.Net.Http;
+using System.Diagnostics;
 
 namespace VorneAPITest
 {
@@ -21,11 +22,11 @@ namespace VorneAPITest
     public class RestClient
     {
 
-        
+        private int timeout;
 
-        public RestClient()
+        public RestClient(int to)
         {
-
+            this.timeout = to;
         }
 
 
@@ -42,6 +43,8 @@ namespace VorneAPITest
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endPoint);
 
+            request.Timeout = this.timeout;
+            request.ReadWriteTimeout = this.timeout;
 
             request.Method = httpMethod.ToString();
 
@@ -79,6 +82,7 @@ namespace VorneAPITest
                 strResponseValue = string.Empty;
             }
 
+            
 
 
             return strResponseValue;

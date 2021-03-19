@@ -37,9 +37,9 @@ namespace VorneAPITest
         string VORNEIP;
         int LISTENPORT; // the port that the server listens on
         string LIGHTPORT;
-        
 
-        private const int VORNEQUERYINTERVAL = 1000;
+        private const int VORNETIMEOUT = 150;
+        private const int VORNEQUERYINTERVAL = 250;
         private const int CLIENTTIMEOUT = 150;
         private const int CLIENTQUERYINTERVAL = 250;
 
@@ -228,7 +228,7 @@ namespace VorneAPITest
 
                 
                 // vorne communication
-                RestClient client = new RestClient();
+                RestClient client = new RestClient(VORNETIMEOUT);
 
 
 
