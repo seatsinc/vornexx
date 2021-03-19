@@ -30,7 +30,7 @@ namespace VorneAPITest
         }
 
 
-        public string makeRequest(string endPoint, httpVerb httpMethod)
+        public string makeRequest(string endPoint, httpVerb httpMethod, int retries = 0)
         {
 
 
@@ -52,10 +52,7 @@ namespace VorneAPITest
             {
                 using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new ApplicationException("error code " + response.StatusCode.ToString());
-                    }
+
                     // Process the response stream... (could be JSON, XML or HTML etc...)
 
                     using (Stream responseStream = response.GetResponseStream())
@@ -76,16 +73,20 @@ namespace VorneAPITest
                     response.Close();
 
                 }
+
+                return strResponseValue;
             }
             catch (Exception exc)
             {
-                strResponseValue = string.Empty;
+                if (retries > 30)
+                {
+                    return string.Empty;
+                }
+                else
+                {
+                    return this.makeRequest(endPoint, httpMethod, retries + 1);
+                }
             }
-
-            
-
-
-            return strResponseValue;
 
         }
 

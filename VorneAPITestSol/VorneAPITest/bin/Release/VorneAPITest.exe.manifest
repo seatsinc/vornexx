@@ -61,7 +61,7 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>yflzq5m+ihzM/CZHB2mfz8TszHIyFjXsDlM42UWXqSw=</dsig:DigestValue>
+        <dsig:DigestValue>zD8lsEF1YnOCJxoLNVJ9bTstuc+wWOr5m7zN3/u6kH4=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -71,7 +71,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>yZbsxjNWoQBCqZ5PizOC1DuXS3xQqdxfz+YWIHodiHY=</dsig:DigestValue>
+      <dsig:DigestValue>87kfMqTz9PNAjH0UZ0rGjmtyfCEXs9/TDGTl4r+kkAg=</dsig:DigestValue>
     </hash>
   </file>
   <file name="resources\audio\BEEP.wav" size="94692">

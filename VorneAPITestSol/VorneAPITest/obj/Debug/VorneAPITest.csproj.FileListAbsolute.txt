@@ -305,3 +305,4 @@ C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\VorneAPITestSol\Vorne
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\VorneAPITestSol\VorneAPITest\obj\Debug\VorneAPITest.csproj.CopyComplete
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\VorneAPITestSol\VorneAPITest\obj\Debug\VorneAPITest.exe
 C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\VorneAPITestSol\VorneAPITest\obj\Debug\VorneAPITest.pdb
+C:\Users\jbenson\Documents\cache\vorne++\vorne-19\vornehud\VorneAPITestSol\VorneAPITest\obj\Debug\VorneAPITest.csprojAssemblyReference.cache

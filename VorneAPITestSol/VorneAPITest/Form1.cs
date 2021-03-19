@@ -39,9 +39,9 @@ namespace VorneAPITest
         string LIGHTPORT;
 
         private const int VORNETIMEOUT = 150;
-        private const int VORNEQUERYINTERVAL = 250;
+        private const int VORNEQUERYINTERVAL = 1000;
         private const int CLIENTTIMEOUT = 150;
-        private const int CLIENTQUERYINTERVAL = 250;
+        private const int CLIENTQUERYINTERVAL = 200;
 
 
 
@@ -81,7 +81,6 @@ namespace VorneAPITest
             p.DataBits = 8;
             p.Parity = Parity.None;
             p.StopBits = StopBits.One;
-            p.RtsEnable = true;
             p.DiscardNull = true;
             p.ReadTimeout = VORNEQUERYINTERVAL;
             p.WriteTimeout = VORNEQUERYINTERVAL;
@@ -234,12 +233,12 @@ namespace VorneAPITest
 
                 try
                 {
-
-
-
-                    string requestPS = client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
+                    Stopwatch timer = new Stopwatch();
+                    timer.Start();
+                    string requestPS =  client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
                     string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
-
+                    timer.Stop();
+                    Console.WriteLine(timer.ElapsedMilliseconds);
 
                     if (requestPS == string.Empty || requestPR == string.Empty)
                         throw new Exception("Could not make http request!");
@@ -260,7 +259,6 @@ namespace VorneAPITest
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.ToString());
 
 
                     this.pID = "";
