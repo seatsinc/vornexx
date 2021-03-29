@@ -25,7 +25,7 @@ namespace VorneAPITestC
         }
 
 
-        public Message queryServer()
+        public Message queryServer(int retries = 0)
         {
 
             Message message = null;
@@ -94,7 +94,10 @@ namespace VorneAPITestC
 
             if (message == null)
             {
-                return new Message("OFFLINE", "BLACK**", "", 0);
+                if (retries > 30)
+                    return new Message("OFFLINE", "BLACK**", "", 0);
+                else
+                    return this.queryServer(retries + 1);
             }
             else
             {

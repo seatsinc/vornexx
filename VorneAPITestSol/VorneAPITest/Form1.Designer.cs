@@ -67,6 +67,7 @@ namespace VorneAPITest
             this.lblClock.Size = new System.Drawing.Size(331, 85);
             this.lblClock.TabIndex = 2;
             this.lblClock.Text = "00:00:00";
+            this.lblClock.Click += new System.EventHandler(this.lblClock_Click);
             // 
             // lblPS
             // 

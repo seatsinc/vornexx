@@ -14,6 +14,9 @@ using System.Net;
 using System.Threading;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Ports;
+using System.Diagnostics;
+using NAudio.Wave;
 
 namespace VorneAPITestC
 {
@@ -30,8 +33,12 @@ namespace VorneAPITestC
         string SERVERIP;
         public static string WCNAME;
         int SERVERPORT; // the port the server LISTENS on
+        string LIGHTPORT;
 
-        const int QUERYINTERVAL = 200;
+
+        private SerialPort p = new SerialPort();
+
+        const int QUERYINTERVAL = 250;
         const int TIMEOUT = 150;
         
         public string ps;
@@ -53,10 +60,17 @@ namespace VorneAPITestC
 
             this.loadConstants();
 
+            p.PortName = LIGHTPORT;
+            p.BaudRate = 9600;
+            p.DataBits = 8;
+            p.Parity = Parity.None;
+            p.StopBits = StopBits.One;
+            p.DiscardNull = true;
+            p.ReadTimeout = 1000;
+            p.WriteTimeout = 1000;
 
 
-
-            AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
+            AppDomain.CurrentDomain.ProcessExit += new EventHandler(this.OnApplicationExit);
 
             // aligning
             Rectangle wa = Screen.GetWorkingArea(this);
@@ -105,6 +119,79 @@ namespace VorneAPITestC
 
             this.communicate();
 
+            this.changeColorAsync();
+
+
+        }
+
+
+        private char getArduinoColor(string color)
+        {
+            if (color == "RED")
+            {
+                return 'r';
+            }
+            else if (color == "GREEN")
+            {
+                return 'g';
+            }
+            else if (color == "BLUE")
+            {
+                return 'b';
+            }
+            else if (color == "YELLOW")
+            {
+                return 'y';
+            }
+            else
+            {
+                return 'x';
+            }
+
+        }
+
+
+        private async void changeColorAsync()
+        {
+            await Task.Run(() =>
+            {
+
+                char color = this.getArduinoColor(this.color);
+
+                try
+                {
+
+
+
+                    if (!p.IsOpen)
+                        p.Open();
+
+
+                    if (p.IsOpen)
+                    {
+                        p.Write(color.ToString());
+                    }
+                    else
+                        throw new Exception("Serial port is not open");
+
+
+                    Console.WriteLine((char)p.ReadChar());
+
+
+
+                }
+                catch (Exception exc)
+                {
+                    Thread.Sleep(1000);
+                }
+                finally
+                {
+
+                    this.changeColorAsync();
+                }
+
+            });
+
 
         }
 
@@ -130,6 +217,7 @@ namespace VorneAPITestC
                 this.VORNEIP = sl[1][1].Trim();
                 this.SERVERIP = sl[2][1].Trim();
                 this.SERVERPORT = Int32.Parse(sl[3][1].Trim());
+                this.LIGHTPORT = sl[4][1].Trim();
 
 
             }
@@ -140,9 +228,33 @@ namespace VorneAPITestC
             }
         }
 
-        static void OnProcessExit(object sender, EventArgs e)
+        private void OnApplicationExit(object sender, EventArgs e)
+        // turns lights off when the program exits
         {
-            Environment.Exit(Environment.ExitCode);
+
+
+
+            try
+            {
+                if (!p.IsOpen)
+                    p.Open();
+
+                if (p.IsOpen)
+                    p.Write('x'.ToString());
+                else
+                    throw new Exception("Serial port is not open");
+
+                p.Close();
+            }
+            catch (Exception exc)
+            {
+                //Console.WriteLine(exc.ToString());
+            }
+            finally
+            {
+                Process.GetCurrentProcess().Kill();
+            }
+
         }
 
         private async void communicate()
@@ -203,10 +315,36 @@ namespace VorneAPITestC
             this.BackColor = this.colorFromPS(this.color);
 
             // BLACK** means that it is not connected to the VORNE
-            if (this.color != "BLACK" && this.color != "BLACK**" && this.inRoll == true)
+            if (this.color == "BLACK" && this.inRoll == false)
             {
-                SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-                sp.Play();
+                Thread newThread = new Thread(() =>
+                {
+
+                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
+
+                    WaveFileReader wf = new WaveFileReader("resources\\audio\\BEEP.wav");
+
+                    try
+                    {
+                        Thread.Sleep(TimeSpan.FromSeconds(this.tt) - wf.TotalTime);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                    }
+                    finally
+                    {
+                        sp.Play();
+                    }
+
+               
+                });
+
+                newThread.IsBackground = true;
+
+                newThread.Start();
+
+
             }
 
 

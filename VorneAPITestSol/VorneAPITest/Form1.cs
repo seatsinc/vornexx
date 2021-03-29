@@ -33,7 +33,7 @@ namespace VorneAPITest
 
         // ip address of the vorne machine
         // these will be the values read in from a text file with Form1.loadConstants
-        string WCNAME;
+        public static string WCNAME;
         string VORNEIP;
         int LISTENPORT; // the port that the server listens on
         string LIGHTPORT;
@@ -41,7 +41,7 @@ namespace VorneAPITest
         private const int VORNETIMEOUT = 150;
         private const int VORNEQUERYINTERVAL = 1000;
         private const int CLIENTTIMEOUT = 150;
-        private const int CLIENTQUERYINTERVAL = 200;
+        private const int CLIENTQUERYINTERVAL = 250;
 
 
 
@@ -196,7 +196,7 @@ namespace VorneAPITest
                 foreach (string line in lines)
                     sl.Add(line.Split(':').ToList<string>());
 
-                this.WCNAME = sl[0][1].Trim();
+                WCNAME = sl[0][1].Trim();
                 this.VORNEIP = sl[1][1].Trim();
                 this.LISTENPORT = Int32.Parse(sl[2][1].Trim());
                 this.LIGHTPORT = sl[3][1].Trim();
@@ -227,7 +227,7 @@ namespace VorneAPITest
 
                 
                 // vorne communication
-                RestClient client = new RestClient(VORNETIMEOUT);
+                RestClient client = new RestClient(150, 30);
 
 
 
@@ -619,6 +619,27 @@ namespace VorneAPITest
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
 
+        }
+
+        private void lblClock_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+
+            try
+            {
+                using (Scoreboard sb = new Scoreboard(VORNEIP, WCNAME))
+                {
+                    sb.ShowDialog();
+                }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
+            finally
+            {
+                this.Show();
+            }
         }
 
         private void btnStop_Click(object sender, EventArgs e)

@@ -54,14 +54,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITest.exe" size="27064">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITest.exe" size="37304">
       <assemblyIdentity name="VorneAPITest" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>zD8lsEF1YnOCJxoLNVJ9bTstuc+wWOr5m7zN3/u6kH4=</dsig:DigestValue>
+        <dsig:DigestValue>43R7+gFsMMdERZ7Ca/S+ASnEoGn4+9saTkIcsh/5Dd8=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
@@ -71,7 +71,7 @@
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>87kfMqTz9PNAjH0UZ0rGjmtyfCEXs9/TDGTl4r+kkAg=</dsig:DigestValue>
+      <dsig:DigestValue>j12GcrYb4hjB5QlgdtEYlejtgTPoUPECZP59xEYiMwc=</dsig:DigestValue>
     </hash>
   </file>
   <file name="resources\audio\BEEP.wav" size="94692">

@@ -21,15 +21,16 @@ namespace VorneAPITestC
 
     public class RestClient
     {
+        private int timeout, retries;
 
-
-        public RestClient ()
+        public RestClient (int to, int retr)
         {
-
+            this.timeout = to;
+            this.retries = retr;
 
         }
 
-        public string makeRequest(string endPoint, httpVerb httpMethod)
+        public string makeRequest(string endPoint, httpVerb httpMethod, int numRetries = 0)
         {
 
 
@@ -43,6 +44,9 @@ namespace VorneAPITestC
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(endPoint);
 
             request.Method = httpMethod.ToString();
+
+            request.Timeout = this.timeout;
+            request.ReadWriteTimeout = this.timeout;
 
             try
             {
@@ -80,8 +84,19 @@ namespace VorneAPITestC
             }
 
            
-
-            return strResponseValue;
+            if (strResponseValue == string.Empty)
+            {
+                if (numRetries >= this.retries)
+                {
+                    return strResponseValue;
+                }
+                else
+                {
+                    return this.makeRequest(endPoint, httpMethod, numRetries + 1);
+                }
+            }
+            else
+                return strResponseValue;
 
         }
     }

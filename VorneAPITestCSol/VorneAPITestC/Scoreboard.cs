@@ -30,8 +30,6 @@ namespace VorneAPITestC
         
         private List<List<List<string>>> board = new List<List<List<string>>>();
 
-        private int count = 0;
-
         private List<double> totalLaborHours = new List<double>();
 
 
@@ -104,7 +102,7 @@ namespace VorneAPITestC
             
             List<List<List<string>>> sb = new List<List<List<string>>>();
 
-            RestClient client = new RestClient();
+            RestClient client = new RestClient(150, 30);
 
             // center("TIME", w), center("PART", w), center("GOOD COUNT", w), center("LABOR EFF.", w), center("OEE", w), center("AVAIL.", w), center("PERF.", w), center("QUALITY", w));
 
@@ -115,42 +113,83 @@ namespace VorneAPITestC
                
 
                 string shiftQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=shift&limit=15&sort=-event_id", httpVerb.GET);
+
+                if (shiftQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 shiftQuery = Util.jsonMakeover(shiftQuery);
                 Console.WriteLine(shiftQuery);
                 ShiftQueryNS.ShiftQuery sq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(shiftQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string lQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=labor&limit=15&sort=-event_id", httpVerb.GET);
+
+                if (lQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery lq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(lQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
-
-
-
                 string timeQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=end_time&limit=15&sort=-event_id", httpVerb.GET);
+
+                if (timeQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery tq = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(timeQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string elQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=earned_labor&limit=15&sort=-event_id", httpVerb.GET);
+
+                if (elQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery el = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(elQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string partQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=part&limit=15&sort=-event_id", httpVerb.GET);
+
+                if (partQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 partQuery = Util.jsonMakeover(partQuery);
                 ShiftQueryNS.ShiftQuery part = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(partQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string goodCountQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=good_count&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (goodCountQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery gc = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(goodCountQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string lbrEffQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=labor_efficiency&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (lbrEffQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery le = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(lbrEffQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string oeeQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=oee&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (oeeQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery oee = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(oeeQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string availabilityQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=availability&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (availabilityQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery a = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(availabilityQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string performanceQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=performance&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (performanceQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery p = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(performanceQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
                 string qualityQuery = client.makeRequest("http://" + VORNEIP + "/api/v0/channels/shift_hour/events?fields=quality&limit=20&sort=-event_id", httpVerb.GET);
+
+                if (qualityQuery == string.Empty)
+                    throw new Exception("timeout!");
+
                 ShiftQueryNS.ShiftQuery q = JsonConvert.DeserializeObject<ShiftQueryNS.ShiftQuery>(qualityQuery, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
 
 
@@ -289,7 +328,7 @@ namespace VorneAPITestC
                 sb.Reverse();
 
 
-                this.count++;
+
 
 
                 return sb;
@@ -480,22 +519,30 @@ namespace VorneAPITestC
             this.Close();
         }
 
-        private void refr()
+        private async void refr()
         {
-            
 
-            this.lblScoreboard.Text = "LOADING...";
-            this.board = this.queryScore();
-
-            if (this.board == null)
+            await Task.Run(() =>
             {
-                this.lblScoreboard.Text = "ERROR";
-                return;
-            }
 
-            this.writeScore();
+                this.Invoke((System.Action)(() =>
+                {
 
-            
+                    this.lblScoreboard.Text = "LOADING...";
+                    this.board = this.queryScore();
+
+                    if (this.board == null)
+                    {
+                        this.lblScoreboard.Text = "CONNECTION TIMEOUT";
+                        return;
+                    }
+
+                    this.writeScore();
+
+                }));
+            });
+
+
         }
 
         

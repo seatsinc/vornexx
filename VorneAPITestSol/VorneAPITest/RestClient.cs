@@ -23,14 +23,16 @@ namespace VorneAPITest
     {
 
         private int timeout;
+        private int retries;
 
-        public RestClient(int to)
+        public RestClient(int to, int retr)
         {
             this.timeout = to;
+            this.retries = retr;
         }
 
 
-        public string makeRequest(string endPoint, httpVerb httpMethod, int retries = 0)
+        public string makeRequest(string endPoint, httpVerb httpMethod, int numRetries = 0)
         {
 
 
@@ -78,13 +80,13 @@ namespace VorneAPITest
             }
             catch (Exception exc)
             {
-                if (retries > 30)
+                if (numRetries >= this.retries)
                 {
                     return string.Empty;
                 }
                 else
                 {
-                    return this.makeRequest(endPoint, httpMethod, retries + 1);
+                    return this.makeRequest(endPoint, httpMethod, numRetries + 1);
                 }
             }
 

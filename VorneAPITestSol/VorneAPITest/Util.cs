@@ -29,6 +29,118 @@ namespace VorneAPITest
 
         }
 
-     
+
+        public static string percentRound(string d, int decs)
+        {
+            double d2 = Convert.ToDouble(d);
+
+            return Math.Round((d2 * 100), decs).ToString();
+        }
+
+        public static string removeWS(string s)
+        {
+            string ns = "";
+
+            for (int i = 0; i < s.Length; ++i)
+            {
+                if (s[i] != ' ')
+                    ns += s[i];
+            }
+
+            return ns;
+        }
+
+
+        public static string replaceStringBounds(string original, string substr, int a, int b)
+        {
+            Console.WriteLine(original);
+            string newString = original.Remove(a, b - a);
+
+            newString = newString.Insert(a, substr);
+
+            Console.WriteLine(newString);
+
+            return newString;
+        }
+
+
+        public static string jsonMakeover(string json)
+        {
+
+            json = Util.removeWS(json);
+
+
+            // account for changeovers
+
+            List<int> leftBounds = new List<int>(), rightBounds = new List<int>(); // index of left bound the first letter and index of right bounds the second letter
+
+            int e = 1;
+
+            bool firstLB = false;
+            int lastRB = -1;
+            while (e < json.Length)
+            {
+
+                if (json[e] == '[' && json[e - 1] == '[')
+                {
+                    if (firstLB != false)
+                        json = json.Remove(e, 1);
+                    else
+                        firstLB = true;
+
+                }
+                else if (json[e] == ']' && json[e - 1] == ']')
+                {
+                    json = json.Remove(e, 1);
+                    lastRB = e;
+
+                    e--;
+                }
+
+                e++;
+
+            }
+
+
+
+            try
+            {
+                json = json.Insert(lastRB, "]");
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
+
+
+
+            return json;
+
+        }
+
+
+        private static double getWeight(List<double> weights, int index)
+        {
+            return weights.ElementAt<double>(index) / weights.Sum();
+        }
+
+
+
+        public static double weightedAverage(List<double> l, List<double> weights)
+        // assumes both lists are of the same length
+        {
+            double total = 0.0;
+
+            for (int i = 0; i < l.Count; ++i)
+            {
+                total += getWeight(weights, i) * l[i];
+
+            }
+
+            return total;
+
+        }
+
+
     }
 }
