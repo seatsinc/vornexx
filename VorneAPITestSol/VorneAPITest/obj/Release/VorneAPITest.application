@@ -14,14 +14,14 @@
     <framework targetVersion="4.7.2" profile="Full" supportedRuntime="4.0.30319" />
   </compatibleFrameworks>
   <dependency>
-    <dependentAssembly dependencyType="install" codebase="VorneAPITest.exe.manifest" size="4957">
+    <dependentAssembly dependencyType="install" codebase="VorneAPITest.exe.manifest" size="11808">
       <assemblyIdentity name="VorneAPITest.exe" version="1.0.0.76" publicKeyToken="0000000000000000" language="neutral" processorArchitecture="msil" type="win32" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>3aPY2OjM469XkfbH47ntcx4bqz14NUzqo8CIjOmjE5Q=</dsig:DigestValue>
+        <dsig:DigestValue>QZpF7LKHjXlaq6NX+fWQg2Pqr0g9U4FJSxgsJjZc83Q=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

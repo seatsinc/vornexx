@@ -26,11 +26,14 @@ namespace VorneAPITest
 
         // Client socket.
         public Socket workSocket = null;
+
+
+        
     }
 
     public class AsyncServer
     {
-        
+        Mutex mutex = new Mutex();
 
         private int port, timeout;
 
@@ -38,14 +41,24 @@ namespace VorneAPITest
         public static ManualResetEvent allDone = new ManualResetEvent(false);
 
 
+        private Queue<Socket> clients = new Queue<Socket>();
+
         public AsyncServer(int listenPort, int t)
         {
             this.port = listenPort;
             this.timeout = t;
         }
 
+        // Establish the local endpoint for the socket.  
+        // The DNS name of the computer  
+        // running the listener is "host.contoso.com".  
+        IPHostEntry ipHostInfo;
+        IPAddress ipAddress;
+        IPEndPoint localEndPoint;
 
-        
+        // Create a TCP/IP socket.  
+        Socket listener;
+
 
         private string relayMessage = null;
 
@@ -61,17 +74,17 @@ namespace VorneAPITest
             await Task.Run(() =>
             {
 
-            
                 // Establish the local endpoint for the socket.  
                 // The DNS name of the computer  
                 // running the listener is "host.contoso.com".  
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-                IPAddress ipAddress = IPAddress.Any;
-                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, this.port);
+                ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+                ipAddress = IPAddress.Any;
+                localEndPoint = new IPEndPoint(ipAddress, this.port);
 
                 // Create a TCP/IP socket.  
-                Socket listener = new Socket(ipAddress.AddressFamily,
+                listener = new Socket(ipAddress.AddressFamily,
                     SocketType.Stream, ProtocolType.Tcp);
+
 
                 // Bind the socket to the local endpoint and listen for incoming connections.  
                 try
@@ -107,72 +120,134 @@ namespace VorneAPITest
 
         private void AcceptCallback(IAsyncResult ar)
         {
-            // Signal the main thread to continue.  
-            allDone.Set();
-
-           
-            // Get the socket that handles the client request.  
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
-
-            handler.ReceiveTimeout = this.timeout;
-            handler.SendTimeout = this.timeout;
+            try
+            {
 
 
-            // Create the state object.  
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
+                // Signal the main thread to continue.  
+                allDone.Set();
+
+
+                // Get the socket that handles the client request.  
+                Socket listener = (Socket)ar.AsyncState;
+                Socket handler = listener.EndAccept(ar);
+
+                handler.ReceiveTimeout = this.timeout;
+                handler.SendTimeout = this.timeout;
+
+
+                // Create the state object.  
+                StateObject state = new StateObject();
+                state.workSocket = handler;
+                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReadCallback), state);
+
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
         }
 
         private void ReadCallback(IAsyncResult ar)
         {
-            String content = String.Empty;
-
-            // Retrieve the state object and the handler socket  
-            // from the asynchronous state object.  
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
-
-            // Read data from the client socket.
-            int bytesRead = handler.EndReceive(ar);
-
-
-            if (bytesRead > 0)
+            try
             {
-                // There  might be more data, so store the data received so far.  
-                state.sb.Append(Encoding.ASCII.GetString(
-                    state.buffer, 0, bytesRead));
 
-                // Check for end-of-file tag. If it is not there, read
-                // more data.  
-                content = state.sb.ToString();
-                if (content.IndexOf("<EOF>") > -1)
+
+                String content = String.Empty;
+
+                // Retrieve the state object and the handler socket  
+                // from the asynchronous state object.  
+                StateObject state = (StateObject)ar.AsyncState;
+                Socket handler = state.workSocket;
+
+                // Read data from the client socket.
+                int bytesRead = handler.EndReceive(ar);
+
+
+                if (bytesRead > 0)
                 {
-                    // All the data has been read from the
-                    // client. Display it on the console.  
-                    // Echo the data back to the client.  
-                    Send(handler, content);
+                    // There  might be more data, so store the data received so far.  
+                    state.sb.Append(Encoding.ASCII.GetString(
+                        state.buffer, 0, bytesRead));
+
+                    // Check for end-of-file tag. If it is not there, read
+                    // more data.  
+                    content = state.sb.ToString();
+                    if (content.IndexOf("<EOF>") > -1)
+                    {
+                        // All the data has been read from the
+                        // client. Display it on the console.  
+                        // Echo the data back to the client.  
+                        //Send(handler);
+
+                        this.mutex.WaitOne();
+                        this.clients.Enqueue(handler);
+                        this.mutex.ReleaseMutex();
+
+                        //************************************
+                    }
+                    else
+                    {
+                        // Not all data received. Get more.  
+                        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        new AsyncCallback(ReadCallback), state);
+                    }
                 }
-                else
-                {
-                    // Not all data received. Get more.  
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
-                }
+
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
             }
             
         }
 
-        private void Send(Socket handler, String data)
+        public async void dump()
         {
-            // Convert the string data to byte data using ASCII encoding.  
-            byte[] byteData = Encoding.ASCII.GetBytes(this.relayMessage + "<EOF>");
+            await Task.Run(() => {
 
-            // Begin sending the data to the remote device.  
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
-                new AsyncCallback(SendCallback), handler);
+                this.mutex.WaitOne();
+                while (this.clients.Count > 0)
+                {
+                    try
+                    {
+                        Send(this.clients.Peek());
+                    }
+                    catch (Exception exc)
+                    {
+                        Console.WriteLine(exc.ToString());
+                    }
+
+                    this.clients.Dequeue();
+                }
+                this.mutex.ReleaseMutex();
+            });
+        }
+
+        private void Send(Socket handler)
+        {
+            try
+            {
+
+
+                // Convert the string data to byte data using ASCII encoding.  
+                byte[] byteData = Encoding.ASCII.GetBytes(this.relayMessage + "<EOF>");
+
+                if (handler != null)
+                {
+
+                    // Begin sending the data to the remote device.  
+                    handler.BeginSend(byteData, 0, byteData.Length, 0,
+                        new AsyncCallback(SendCallback), handler);
+
+                }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+            }
         }
 
         private void SendCallback(IAsyncResult ar)
@@ -192,6 +267,20 @@ namespace VorneAPITest
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+            }
+        }
+
+        public void exit()
+        {
+            try
+            {
+                this.dump();
+                this.listener.Shutdown(SocketShutdown.Both);
+                this.listener.Close();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
             }
         }
 

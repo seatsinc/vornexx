@@ -16,7 +16,7 @@ using System.IO.Ports;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
-
+using NAudio.Wave;
 
 namespace VorneAPITest
 {
@@ -26,7 +26,9 @@ namespace VorneAPITest
 
 
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
-        const int ROLLDIVISOR = 10;
+        //const int ROLLDIVISOR = 10;
+
+        public TimeSpan rollTimes;
 
         private AsyncServer ss;
 
@@ -39,12 +41,12 @@ namespace VorneAPITest
         string LIGHTPORT;
 
         private const int VORNETIMEOUT = 150;
+        private const int VORNERETRIES = 30;
         private const int VORNEQUERYINTERVAL = 1000;
-        private const int CLIENTTIMEOUT = 150;
-        private const int CLIENTQUERYINTERVAL = 250;
+        private const int CLIENTTIMEOUT = 250;
 
 
-
+        
         
 
         // keeps track of the production state 
@@ -82,11 +84,12 @@ namespace VorneAPITest
             p.Parity = Parity.None;
             p.StopBits = StopBits.One;
             p.DiscardNull = true;
-            p.ReadTimeout = VORNEQUERYINTERVAL;
-            p.WriteTimeout = VORNEQUERYINTERVAL;
-           
+            p.ReadTimeout = 1000;
+            p.WriteTimeout = 1000;
 
 
+            WaveFileReader wf = new WaveFileReader("resources\\audio\\BEEP.wav");
+            rollTimes = wf.TotalTime;
 
 
 
@@ -111,8 +114,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // adding an image
             Bitmap image = (Bitmap)Image.FromFile(@"resources\images\logo.png");
@@ -212,12 +215,6 @@ namespace VorneAPITest
 
 
 
-        private int rollTime()
-        {
-            return this.calcSec(this.hour, this.min, this.sec) / ROLLDIVISOR;
-        }
-
-
 
         private async void queryVorneAsync()
         {
@@ -227,7 +224,7 @@ namespace VorneAPITest
 
                 
                 // vorne communication
-                RestClient client = new RestClient(150, 30);
+                RestClient client = new RestClient(VORNETIMEOUT, VORNERETRIES);
 
 
 
@@ -289,7 +286,14 @@ namespace VorneAPITest
         private void OnApplicationExit(object sender, EventArgs e)
         // turns lights off when the program exits
         {
-
+            try
+            {
+                this.ss.exit();
+            }
+            catch
+            {
+                Console.WriteLine("asdf");
+            }
 
 
             try
@@ -321,7 +325,7 @@ namespace VorneAPITest
         {
             this.ps = Util.replAwBStr(this.ps, '_', ' ');
 
-            if (this.stopped == false && this.tt < this.rollTime())
+            if (this.stopped == false && this.tt < this.rollTimes.TotalSeconds)
             {
                 return "BLACK";
             }
@@ -569,14 +573,22 @@ namespace VorneAPITest
         private void taktTimer_Tick(object sender, EventArgs e)
         {
 
+            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+
+            this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+
+            this.ss.dump();
+
             if (this.tt == 0)
                 this.tt = this.calcSec(this.hour, this.min, this.sec - 1);
             else
                 this.tt--;
 
-            this.lblClock.Text = this.clockFromSec(this.tt);
+            
 
-
+            
 
 
         }
@@ -670,6 +682,7 @@ namespace VorneAPITest
             return (hour * 3600) + (min * 60) + sec;
         }
 
+        
 
        
         private async void updateHUDAsync()
@@ -686,7 +699,7 @@ namespace VorneAPITest
                     {
 
 
-                        if (this.tt < this.rollTime() && this.stopped == false)
+                        if (this.tt < this.rollTimes.TotalSeconds && this.stopped == false)
                             this.lblPS.Text = "ROLL!";
                         else
                             this.lblPS.Text = this.ps;
@@ -715,14 +728,26 @@ namespace VorneAPITest
                 }
                 finally
                 {
-                    Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
-                    this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+                    
 
 
+                    
+                    Thread.Sleep(1000);
 
-                    Thread.Sleep(CLIENTQUERYINTERVAL);
 
                     this.updateHUDAsync();
+
+                    
+
+                    if (this.taktTimer.Enabled == false)
+                    {
+                        Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+
+                        this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
+
+                        this.ss.dump();
+
+                    }
                 }
 
                 

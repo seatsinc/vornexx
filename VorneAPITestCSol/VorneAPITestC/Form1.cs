@@ -38,8 +38,7 @@ namespace VorneAPITestC
 
         private SerialPort p = new SerialPort();
 
-        const int QUERYINTERVAL = 250;
-        const int TIMEOUT = 150;
+        const int TIMEOUT = 1250;
         
         public string ps;
         public string color;
@@ -66,8 +65,8 @@ namespace VorneAPITestC
             p.Parity = Parity.None;
             p.StopBits = StopBits.One;
             p.DiscardNull = true;
-            p.ReadTimeout = 1000;
-            p.WriteTimeout = 1000;
+            p.ReadTimeout = TIMEOUT;
+            p.WriteTimeout = TIMEOUT;
 
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(this.OnApplicationExit);
@@ -182,13 +181,9 @@ namespace VorneAPITestC
                 }
                 catch (Exception exc)
                 {
-                    Thread.Sleep(1000);
+                    Console.WriteLine(exc.ToString());
                 }
-                finally
-                {
 
-                    this.changeColorAsync();
-                }
 
             });
 
@@ -268,6 +263,8 @@ namespace VorneAPITestC
 
                 Message message = sc.queryServer();
 
+
+
                 this.pID = message.pID;
                 this.tt = message.tt;
                 this.color = message.color;
@@ -276,6 +273,7 @@ namespace VorneAPITestC
                 try
                 {
                     this.Invoke((System.Action)(this.updateHUD));
+                    this.changeColorAsync();
                 }
                 catch (Exception exc)
                 {
@@ -283,9 +281,6 @@ namespace VorneAPITestC
                 }
                 finally
                 {
-                    Thread.Sleep(QUERYINTERVAL);
-
-
                     this.communicate();
                 }
 
@@ -324,18 +319,7 @@ namespace VorneAPITestC
 
                     WaveFileReader wf = new WaveFileReader("resources\\audio\\BEEP.wav");
 
-                    try
-                    {
-                        Thread.Sleep(TimeSpan.FromSeconds(this.tt) - wf.TotalTime);
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine(e.ToString());
-                    }
-                    finally
-                    {
-                        sp.Play();
-                    }
+                    sp.Play();
 
                
                 });
