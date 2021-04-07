@@ -45,7 +45,7 @@ namespace VorneAPITest
         private const int VORNEQUERYINTERVAL = 1000;
         private const int CLIENTTIMEOUT = 250;
 
-
+        private string soundFileName = "BEEP.wav";
         
         
 
@@ -76,7 +76,9 @@ namespace VorneAPITest
         private void Form1_Load(object sender, EventArgs e)
         {
             this.loadConstants();
+            this.populateSounds();
 
+            this.changeSound(this.cbSounds.Items[0].ToString());
 
             p.PortName = LIGHTPORT;
             p.BaudRate = 9600;
@@ -88,8 +90,7 @@ namespace VorneAPITest
             p.WriteTimeout = 1000;
 
 
-            WaveFileReader wf = new WaveFileReader("resources\\audio\\BEEP.wav");
-            rollTimes = wf.TotalTime;
+            
 
 
 
@@ -114,8 +115,8 @@ namespace VorneAPITest
             Rectangle wa = Screen.GetWorkingArea(this);
             this.Width = wa.Width / 5;
             this.Height = wa.Height / 3;
-            //this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
-            this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
+            this.Location = new Point(wa.Right - this.Width, wa.Bottom - this.Height);
+            //this.Location = new Point(wa.Right - this.Width, wa.Top); // for testing
 
             // adding an image
             Bitmap image = (Bitmap)Image.FromFile(@"resources\images\logo.png");
@@ -136,6 +137,7 @@ namespace VorneAPITest
 
             this.lblPS.Location = new Point(wa.Left + 10, wa.Top + 10);
             this.lblPartID.Location = new Point(wa.Left + this.Width - this.lblPartID.Width - 10, wa.Top + 10);
+            this.cbSounds.Location = new Point(wa.Left + this.Width - this.cbSounds.Width - 10, wa.Top + this.cbSounds.Height + 10);
             this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
             this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblTime.Height - 10);
 
@@ -179,7 +181,14 @@ namespace VorneAPITest
 
         }
 
+        private void changeSound(string fileName)
+        {
+            this.soundFileName = fileName;
 
+            WaveFileReader wf = new WaveFileReader($"resources\\audio\\{fileName}");
+            rollTimes = wf.TotalTime;
+        }
+        
 
         private void loadConstants()
         {
@@ -281,7 +290,40 @@ namespace VorneAPITest
 
 
         }
+        
 
+        private void populateSounds()
+        {
+            foreach (string fileName in Directory.GetFiles(@"resources\audio"))
+            {
+                this.cbSounds.Items.Add(parseFileName(fileName));
+            }
+
+            this.cbSounds.SelectedIndex = 0;
+        }
+
+        private string parseFileName(string path)
+        {
+            string parsedFileName = "";
+
+            Stack<char> stack = new Stack<char>();
+
+            int i = path.Length - 1;
+
+            while (path[i] != '\\')
+            {
+                stack.Push(path[i]);
+                i--;
+            }
+
+            while (stack.Count > 0)
+            {
+                parsedFileName += stack.Peek();
+                stack.Pop();
+            }
+
+            return parsedFileName;
+        }
 
         private void OnApplicationExit(object sender, EventArgs e)
         // turns lights off when the program exits
@@ -573,7 +615,7 @@ namespace VorneAPITest
         private void taktTimer_Tick(object sender, EventArgs e)
         {
 
-            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+            Message message = new Message(this.ps, this.getColor(), this.pID, this.tt, this.soundFileName);
 
             this.lblClock.Text = this.clockFromSec(this.tt);
 
@@ -652,6 +694,11 @@ namespace VorneAPITest
             {
                 this.Show();
             }
+        }
+
+        private void cbSounds_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            this.changeSound(this.cbSounds.SelectedItem.ToString());
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -741,7 +788,7 @@ namespace VorneAPITest
 
                     if (this.taktTimer.Enabled == false)
                     {
-                        Message message = new Message(this.ps, this.getColor(), this.pID, this.tt);
+                        Message message = new Message(this.ps, this.getColor(), this.pID, this.tt, this.soundFileName);
 
                         this.ss.setRelayMessage(JsonConvert.SerializeObject(message));
 

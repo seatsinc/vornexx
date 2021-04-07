@@ -7,19 +7,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace VorneAPITestC
 {
     class SyncClient
     {
 
-        private string remoteIP;
+        private string remoteHostName;
         private int remotePort;
         private int timeout;
 
-        public SyncClient(string rIP, int rPort, int to)
+        public SyncClient(string rHN, int rPort, int to)
         {
-            this.remoteIP = rIP;
+            this.remoteHostName = rHN;
             this.remotePort = rPort;
             this.timeout = to;
         }
@@ -33,26 +34,22 @@ namespace VorneAPITestC
             // Data buffer for incoming data.  
             byte[] bytes = new byte[1024];
 
-            // Connect to a remote device.  
-            // Establish the remote endpoint for the socket.  
-            // This example uses port 11000 on the local computer.  
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = IPAddress.Parse(this.remoteIP);
-            IPEndPoint remoteEP = new IPEndPoint(ipAddress, this.remotePort);
+            
 
 
-
-            try
+            using (Socket sender = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
-                // Create a TCP/IP  socket.  
-                using (Socket sender = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp))
+
+                try
                 {
+                    // Create a TCP/IP  socket.  
+
+
                     sender.ReceiveTimeout = this.timeout;
                     sender.SendTimeout = this.timeout;
 
                     // Connect the socket to the remote endpoint. Catch any errors.  
-                    Console.WriteLine("asdf");
-                    sender.Connect(remoteEP);
+                    sender.Connect(this.remoteHostName, this.remotePort);
 
 
 
@@ -73,7 +70,10 @@ namespace VorneAPITestC
 
                     string data = string.Empty;
 
-                    // An incoming connection needs to be processed.
+
+                    Stopwatch receiveTimer = new Stopwatch();
+                    receiveTimer.Start();
+                    
                     do
                     {
                         if (sender.Connected)
@@ -81,20 +81,30 @@ namespace VorneAPITestC
                         else
                             throw new Exception("Connection lost!");
 
+                        Console.WriteLine(data.Length);
+                        
+                        if (receiveTimer.ElapsedMilliseconds > this.timeout)
+                        {
+                            throw new Exception("receive timeout");
+                        }
+                        
+
                     } while (!data.Contains("<EOF>"));
+                    receiveTimer.Reset();
 
-
-
+                    Console.WriteLine(data.Length);
                     message = JsonConvert.DeserializeObject<Message>(data.Substring(0, data.Length - 5));
 
+
+
                 }
+                catch (Exception exc)
+                {
 
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc.ToString());
-
-                message = null;
+              
+ 
+                    message = null;
+                }
             }
 
 
@@ -103,13 +113,12 @@ namespace VorneAPITestC
             if (message == null)
             {
                 Console.WriteLine("hello");
-                /*
-                if (retries > 5)
-                    return new Message("OFFLINE", "BLACK**", "", 0);
+                
+                if (retries > 4)
+                    return new Message("OFFLINE", "BLACK**", "", 0, "BEEP.wav");
                 else
                     return this.queryServer(retries + 1);
-                */
-                return new Message("OFFLINE", "BLACK**", "", 0);
+                
             }
             else
             {

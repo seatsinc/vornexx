@@ -45,6 +45,7 @@ namespace VorneAPITest
             this.btnStop = new System.Windows.Forms.Button();
             this.taktTimer = new System.Windows.Forms.Timer(this.components);
             this.pbLogo = new System.Windows.Forms.PictureBox();
+            this.cbSounds = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).BeginInit();
             this.SuspendLayout();
             // 
@@ -200,11 +201,22 @@ namespace VorneAPITest
             this.pbLogo.TabIndex = 22;
             this.pbLogo.TabStop = false;
             // 
+            // cbSounds
+            // 
+            this.cbSounds.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbSounds.FormattingEnabled = true;
+            this.cbSounds.Location = new System.Drawing.Point(916, 228);
+            this.cbSounds.Name = "cbSounds";
+            this.cbSounds.Size = new System.Drawing.Size(121, 21);
+            this.cbSounds.TabIndex = 23;
+            this.cbSounds.SelectedIndexChanged += new System.EventHandler(this.cbSounds_SelectedIndexChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.cbSounds);
             this.Controls.Add(this.pbLogo);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnStart);
@@ -247,6 +259,7 @@ namespace VorneAPITest
         private System.Windows.Forms.Button btnStop;
         private System.Windows.Forms.Timer taktTimer;
         private System.Windows.Forms.PictureBox pbLogo;
+        private System.Windows.Forms.ComboBox cbSounds;
     }
 }
 

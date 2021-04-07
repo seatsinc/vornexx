@@ -181,17 +181,17 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>IS5NF5fC8HJYFiK7MVCUKgBP2Hswn58tnZ7EzxEVWh4=</dsig:DigestValue>
+        <dsig:DigestValue>VKeXPIwh3byJ9aUxdcHSE3N69JnyHKGTJPExtSwb0rM=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
-  <file name="CONSTANTS.txt" size="128">
+  <file name="CONSTANTS.txt" size="132">
     <hash>
       <dsig:Transforms>
         <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
       </dsig:Transforms>
       <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-      <dsig:DigestValue>KGZuWLPDyutLIckL3feRprcsXM8r0+OmHs/KXmQvpig=</dsig:DigestValue>
+      <dsig:DigestValue>1rPEEVVsKn+NJEMLWIK1G2ZmpV0eBg2HskDJ+Gub5VI=</dsig:DigestValue>
     </hash>
   </file>
   <file name="resources\audio\BEEP.wav" size="109624">

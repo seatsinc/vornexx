@@ -30,10 +30,14 @@ namespace VorneAPITestC
         // Form1.loadConstants will read in these values
         // ONLY CHANGE THESE VALUES
         string VORNEIP;
-        string SERVERIP;
+        string SERVERHOSTNAME;
         public static string WCNAME;
         int SERVERPORT; // the port the server LISTENS on
         string LIGHTPORT;
+
+
+
+        private string soundFileName;
 
 
         private SerialPort p = new SerialPort();
@@ -210,7 +214,7 @@ namespace VorneAPITestC
 
                 Form1.WCNAME = sl[0][1].Trim();
                 this.VORNEIP = sl[1][1].Trim();
-                this.SERVERIP = sl[2][1].Trim();
+                this.SERVERHOSTNAME = sl[2][1].Trim();
                 this.SERVERPORT = Int32.Parse(sl[3][1].Trim());
                 this.LIGHTPORT = sl[4][1].Trim();
 
@@ -252,26 +256,36 @@ namespace VorneAPITestC
 
         }
 
+        private void queryServer()
+        {
+           
+           
+            SyncClient sc = new SyncClient(SERVERHOSTNAME, SERVERPORT, TIMEOUT);
+
+            Message message = sc.queryServer();
+
+
+
+            this.pID = message.pID;
+            this.tt = message.tt;
+            this.color = message.color;
+            this.ps = message.ps;
+            this.soundFileName = message.audioFile;
+            
+           
+        }
+
         private async void communicate()
         {
 
             await Task.Run(() =>
             {
 
-                SyncClient sc = new SyncClient(SERVERIP, SERVERPORT, TIMEOUT);
-
-
-                Message message = sc.queryServer();
-
-
-
-                this.pID = message.pID;
-                this.tt = message.tt;
-                this.color = message.color;
-                this.ps = message.ps;
+                this.queryServer();
 
                 try
                 {
+
                     this.Invoke((System.Action)(this.updateHUD));
                     this.changeColorAsync();
                 }
@@ -293,6 +307,37 @@ namespace VorneAPITestC
 
         private void updateHUD()
         {
+
+            // BLACK** means that it is not connected to the VORNE
+            if (this.color == "BLACK" && this.inRoll == false)
+            {
+                
+                try
+                {
+
+
+                    SoundPlayer sp = new SoundPlayer($"resources\\audio\\{this.soundFileName}");
+
+                    sp.Play();
+
+                }
+                catch (Exception exc)
+                {
+                    MessageBox.Show("could not play media");
+                }
+
+            }
+
+            if (this.color == "BLACK")
+            {
+                this.inRoll = true;
+            }
+            else
+            {
+                this.inRoll = false;
+            }
+
+
             this.lblTime.Text = DateTime.Now.ToLongTimeString();
 
             this.lblPartID.Text = this.pID;
@@ -309,38 +354,7 @@ namespace VorneAPITestC
 
             this.BackColor = this.colorFromPS(this.color);
 
-            // BLACK** means that it is not connected to the VORNE
-            if (this.color == "BLACK" && this.inRoll == false)
-            {
-                Thread newThread = new Thread(() =>
-                {
-
-                    SoundPlayer sp = new SoundPlayer("resources\\audio\\BEEP.wav");
-
-                    WaveFileReader wf = new WaveFileReader("resources\\audio\\BEEP.wav");
-
-                    sp.Play();
-
-               
-                });
-
-                newThread.IsBackground = true;
-
-                newThread.Start();
-
-
-            }
-
-
-
-            if (this.color == "BLACK")
-            {
-                this.inRoll = true;
-            }
-            else
-            {
-                this.inRoll = false;
-            }
+            
         }
 
 

@@ -209,6 +209,10 @@ namespace VorneAPITest
             await Task.Run(() => {
 
                 this.mutex.WaitOne();
+
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
+
                 while (this.clients.Count > 0)
                 {
                     try
@@ -219,15 +223,26 @@ namespace VorneAPITest
                     {
                         Console.WriteLine(exc.ToString());
                     }
-
-                    this.clients.Dequeue();
+                    finally
+                    {
+                        this.clients.Dequeue();
+                    }
                 }
+
+                sw.Stop();
+                Console.WriteLine("Dump time: " + sw.ElapsedMilliseconds.ToString());
+                sw.Reset();
+
                 this.mutex.ReleaseMutex();
             });
         }
 
         private void Send(Socket handler)
         {
+
+            
+
+
             try
             {
 
@@ -248,6 +263,8 @@ namespace VorneAPITest
             {
                 Console.WriteLine(exc.ToString());
             }
+            
+            
         }
 
         private void SendCallback(IAsyncResult ar)
