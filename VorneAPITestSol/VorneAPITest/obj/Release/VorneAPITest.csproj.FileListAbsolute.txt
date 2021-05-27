@@ -154,3 +154,4 @@ C:\dev\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.applicatio
 C:\dev\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.csproj.CopyComplete
 C:\dev\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.exe
 C:\dev\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.pdb
+C:\dev\vornehud\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.csprojAssemblyReference.cache

@@ -137,7 +137,7 @@ namespace VorneAPITest
 
             this.lblPS.Location = new Point(wa.Left + 10, wa.Top + 10);
             this.lblPartID.Location = new Point(wa.Left + this.Width - this.lblPartID.Width - 10, wa.Top + 10);
-            this.cbSounds.Location = new Point(wa.Left + this.Width - this.cbSounds.Width - 10, wa.Top + this.cbSounds.Height + 10);
+            this.cbSounds.Location = new Point(wa.Left + 10, wa.Top + this.lblPS.Height + 10);
 
             this.cbSounds.DropDownWidth = this.DropDownWidth(this.cbSounds);
             this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
