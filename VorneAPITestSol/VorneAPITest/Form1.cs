@@ -138,6 +138,8 @@ namespace VorneAPITest
             this.lblPS.Location = new Point(wa.Left + 10, wa.Top + 10);
             this.lblPartID.Location = new Point(wa.Left + this.Width - this.lblPartID.Width - 10, wa.Top + 10);
             this.cbSounds.Location = new Point(wa.Left + this.Width - this.cbSounds.Width - 10, wa.Top + this.cbSounds.Height + 10);
+
+            this.cbSounds.DropDownWidth = this.DropDownWidth(this.cbSounds);
             this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
             this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblTime.Height - 10);
 
@@ -179,6 +181,25 @@ namespace VorneAPITest
 
 
 
+        }
+
+        int DropDownWidth(ComboBox myCombo)
+        {
+            int maxWidth = 0;
+            int temp = 0;
+            Label label1 = new Label();
+
+            foreach (var obj in myCombo.Items)
+            {
+                label1.Text = obj.ToString();
+                temp = label1.PreferredWidth;
+                if (temp > maxWidth)
+                {
+                    maxWidth = temp;
+                }
+            }
+            label1.Dispose();
+            return maxWidth;
         }
 
         private void changeSound(string fileName)

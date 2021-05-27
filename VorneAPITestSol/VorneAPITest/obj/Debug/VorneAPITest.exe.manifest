@@ -174,14 +174,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITest.exe" size="41912">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="VorneAPITest.exe" size="42424">
       <assemblyIdentity name="VorneAPITest" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha256" />
-        <dsig:DigestValue>TSO+S87N7g03Z2BRbD7EIQvc7cne/XtSlEvbG2DL2j0=</dsig:DigestValue>
+        <dsig:DigestValue>k/DyoaG9+DqMPKSgyXCzownh7FBt4CJ5c1BBTnoC15g=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
