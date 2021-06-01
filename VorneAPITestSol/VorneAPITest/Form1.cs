@@ -208,6 +208,19 @@ namespace VorneAPITest
 
             WaveFileReader wf = new WaveFileReader($"resources\\audio\\{fileName}");
             rollTimes = wf.TotalTime;
+
+            try
+            {
+
+
+                SoundPlayer sp = new SoundPlayer($"resources\\audio\\{this.soundFileName}");
+
+                sp.Play();
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show("media not found");
+            }
         }
         
 
