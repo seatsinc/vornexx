@@ -212,7 +212,6 @@ C:\dev\vornexx\VorneAPITestSol\VorneAPITest\bin\Release\NAudio.xml
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\bin\Release\Newtonsoft.Json.xml
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\bin\Release\System.Security.AccessControl.xml
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\bin\Release\System.Security.Principal.Windows.xml
-C:\dev\vornexx\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.csprojAssemblyReference.cache
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.Form1.resources
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.Properties.Resources.resources
 C:\dev\vornexx\VorneAPITestSol\VorneAPITest\obj\Release\VorneAPITest.Scoreboard.resources
