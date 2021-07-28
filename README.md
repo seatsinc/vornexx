@@ -1,7 +1,7 @@
 # vornehud
 
 Each of the below programs were made to enhance Vorne's capabilities utilizing its programming API.
-They each are contained in a folder with the same name. It will have a text file "DEPLOYMENT INSTRUCTIONS" on how to deploy the programs out into production.
+They each are contained in a folder with the same name.
 Each program may also have a "CONSTANTS" text file that will need to be modified on deployment.***ONLY EDIT INFORMATION ON THE RIGHT SIDE OF THE COLON (:) SYBMOL, DO NOT EDIT ANYTHING ELSE AND KEEP ORDER THE SAME
 
 Below are descriptions of each program with relevant information about them
