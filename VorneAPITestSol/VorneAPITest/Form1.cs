@@ -63,7 +63,7 @@ namespace VorneAPITest
         private SerialPort p = new SerialPort();
 
 
-
+        private int playMinutesCount;
 
         public Form1()
         {
@@ -90,7 +90,8 @@ namespace VorneAPITest
             p.WriteTimeout = 1000;
 
 
-            
+            this.lblShuffle.Visible = false;
+            this.nShuffles.Visible = false;
 
 
 
@@ -139,6 +140,10 @@ namespace VorneAPITest
             this.lblPartID.Location = new Point(wa.Left + this.Width - this.lblPartID.Width - 10, wa.Top + 10);
             this.cbSounds.Location = new Point(wa.Left + 10, wa.Top + this.lblPS.Height + 10);
 
+            this.nShuffles.Location = new Point(wa.Left + this.Width - this.nShuffles.Width - 10, wa.Top + 10 + this.lblPartID.Height);
+            this.lblShuffle.Location = new Point(wa.Left + this.Width - this.lblShuffle.Width - 10, wa.Top + 10 + this.lblPartID.Height + this.nShuffles.Height);
+            this.checkShuffle.Location = new Point(wa.Left + this.Width - this.nShuffles.Width - this.checkShuffle.Width - 10, wa.Top + 10 + this.lblPartID.Height);
+
             this.cbSounds.DropDownWidth = this.DropDownWidth(this.cbSounds);
             this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
             this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblTime.Height - 10);
@@ -153,10 +158,8 @@ namespace VorneAPITest
             this.btnStart.Location = new Point(wa.Left + this.Width / 2 - this.btnStart.Width, wa.Top + this.Height - this.btnStart.Height - 10);
             this.btnStop.Location = new Point(wa.Left + this.Width / 2, wa.Top + this.Height - this.btnStop.Height - 10);
 
-           
 
-
-
+            this.playMinutesCount = 0;
 
 
 
@@ -524,6 +527,10 @@ namespace VorneAPITest
 
         }
 
+        private void updateMinPlayMinutes()
+        {
+            this.nShuffles.Minimum = (this.hour * 60) + this.min + 1;
+        }
 
 
         private string clockFromSec(double secs)
@@ -572,6 +579,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
         private void btnHrDec_Click(object sender, EventArgs e)
@@ -586,6 +595,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
         private void btnMinInc_Click(object sender, EventArgs e)
@@ -600,6 +611,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
         private void btnMinDec_Click(object sender, EventArgs e)
@@ -614,6 +627,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
         private void btnSecInc_Click(object sender, EventArgs e)
@@ -628,6 +643,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
         private void btnSecDec_Click(object sender, EventArgs e)
@@ -642,6 +659,8 @@ namespace VorneAPITest
 
             // update clock
             this.lblClock.Text = this.clockFromSec(this.tt);
+
+            this.updateMinPlayMinutes();
         }
 
 
@@ -733,6 +752,49 @@ namespace VorneAPITest
         private void cbSounds_SelectedIndexChanged(object sender, EventArgs e)
         {
             this.changeSound(this.cbSounds.SelectedItem.ToString());
+        }
+
+        private void checkShuffle_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.checkShuffle.Checked)
+            {
+                this.lblShuffle.Visible = true;
+                this.nShuffles.Visible = true;
+
+                this.playTimer.Start();
+                this.playMinutesCount = 0;
+            }
+            else
+            {
+                this.lblShuffle.Visible = false;
+                this.nShuffles.Visible = false;
+
+                this.playTimer.Stop();
+            }
+        }
+
+        private void playTimer_Tick(object sender, EventArgs e)
+        {
+           
+
+            this.playMinutesCount++;
+
+            if (this.playMinutesCount >= this.nShuffles.Value)
+            {
+
+                Random random = new Random();
+
+                this.cbSounds.SelectedIndex = random.Next(0, this.cbSounds.Items.Count);
+
+                this.playMinutesCount = 0;
+            }
+        }
+
+        private void nShuffles_ValueChanged(object sender, EventArgs e)
+        {
+            this.playTimer.Stop();
+            this.playMinutesCount = 0;
+            this.playTimer.Start();
         }
 
         private void btnStop_Click(object sender, EventArgs e)

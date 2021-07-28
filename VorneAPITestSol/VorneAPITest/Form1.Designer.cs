@@ -46,7 +46,12 @@ namespace VorneAPITest
             this.taktTimer = new System.Windows.Forms.Timer(this.components);
             this.pbLogo = new System.Windows.Forms.PictureBox();
             this.cbSounds = new System.Windows.Forms.ComboBox();
+            this.checkShuffle = new System.Windows.Forms.CheckBox();
+            this.nShuffles = new System.Windows.Forms.NumericUpDown();
+            this.lblShuffle = new System.Windows.Forms.Label();
+            this.playTimer = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nShuffles)).BeginInit();
             this.SuspendLayout();
             // 
             // lblWC
@@ -211,11 +216,62 @@ namespace VorneAPITest
             this.cbSounds.TabIndex = 23;
             this.cbSounds.SelectedIndexChanged += new System.EventHandler(this.cbSounds_SelectedIndexChanged);
             // 
+            // checkShuffle
+            // 
+            this.checkShuffle.AutoSize = true;
+            this.checkShuffle.Location = new System.Drawing.Point(592, 378);
+            this.checkShuffle.Name = "checkShuffle";
+            this.checkShuffle.Size = new System.Drawing.Size(59, 17);
+            this.checkShuffle.TabIndex = 24;
+            this.checkShuffle.Text = "Shuffle";
+            this.checkShuffle.UseVisualStyleBackColor = true;
+            this.checkShuffle.CheckedChanged += new System.EventHandler(this.checkShuffle_CheckedChanged);
+            // 
+            // nShuffles
+            // 
+            this.nShuffles.Location = new System.Drawing.Point(678, 375);
+            this.nShuffles.Maximum = new decimal(new int[] {
+            720,
+            0,
+            0,
+            0});
+            this.nShuffles.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nShuffles.Name = "nShuffles";
+            this.nShuffles.Size = new System.Drawing.Size(49, 20);
+            this.nShuffles.TabIndex = 25;
+            this.nShuffles.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nShuffles.ValueChanged += new System.EventHandler(this.nShuffles_ValueChanged);
+            // 
+            // lblShuffle
+            // 
+            this.lblShuffle.AutoSize = true;
+            this.lblShuffle.Location = new System.Drawing.Point(611, 400);
+            this.lblShuffle.Name = "lblShuffle";
+            this.lblShuffle.Size = new System.Drawing.Size(95, 13);
+            this.lblShuffle.TabIndex = 27;
+            this.lblShuffle.Text = "...every x minute(s)";
+            // 
+            // playTimer
+            // 
+            this.playTimer.Interval = 60000;
+            this.playTimer.Tick += new System.EventHandler(this.playTimer_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.lblShuffle);
+            this.Controls.Add(this.nShuffles);
+            this.Controls.Add(this.checkShuffle);
             this.Controls.Add(this.cbSounds);
             this.Controls.Add(this.pbLogo);
             this.Controls.Add(this.btnStop);
@@ -238,6 +294,7 @@ namespace VorneAPITest
             this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Form1_FormClosed);
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nShuffles)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -260,6 +317,10 @@ namespace VorneAPITest
         private System.Windows.Forms.Timer taktTimer;
         private System.Windows.Forms.PictureBox pbLogo;
         private System.Windows.Forms.ComboBox cbSounds;
+        private System.Windows.Forms.CheckBox checkShuffle;
+        private System.Windows.Forms.NumericUpDown nShuffles;
+        private System.Windows.Forms.Label lblShuffle;
+        private System.Windows.Forms.Timer playTimer;
     }
 }
 
