@@ -90,6 +90,7 @@ namespace VorneAPITest
             p.WriteTimeout = 1000;
 
 
+            this.playMinutesCount = 0;
             this.lblShuffle.Visible = false;
             this.nShuffles.Visible = false;
 
@@ -159,7 +160,7 @@ namespace VorneAPITest
             this.btnStop.Location = new Point(wa.Left + this.Width / 2, wa.Top + this.Height - this.btnStop.Height - 10);
 
 
-            this.playMinutesCount = 0;
+            
 
 
 
@@ -756,13 +757,15 @@ namespace VorneAPITest
 
         private void checkShuffle_CheckedChanged(object sender, EventArgs e)
         {
+            this.playMinutesCount = 0;
+
             if (this.checkShuffle.Checked)
             {
                 this.lblShuffle.Visible = true;
                 this.nShuffles.Visible = true;
 
                 this.playTimer.Start();
-                this.playMinutesCount = 0;
+                
             }
             else
             {
@@ -775,8 +778,6 @@ namespace VorneAPITest
 
         private void playTimer_Tick(object sender, EventArgs e)
         {
-           
-
             this.playMinutesCount++;
 
             if (this.playMinutesCount >= this.nShuffles.Value)
