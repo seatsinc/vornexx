@@ -841,10 +841,14 @@ namespace VorneAPITest
 
                         MessageBox.Show($"" +
                             $"Part: {pid}\n" +
+                            $"Target labor per piece: {this.clockFromSec(Math.Ceiling(tlpp))}\n" +
                             $"Team size: {teamSize}\n" +
-                            $"Goal labor efficiency: {eff}%\n" +
-                            $"Goal cycle time: {this.clockFromSec(Math.Ceiling(3600.0 / sph))}\n" +
-                            $"Goal seats/hour: {sph}");
+                            $"\n" +
+                            $"<< GOALS >>\n" +
+                            $"Labor efficiency: {eff}%\n" +
+                            $"Target labor per piece: {this.clockFromSec(Math.Ceiling(tlpp * (100.0 / eff)))}\n" +
+                            $"Cycle time: {this.clockFromSec(Math.Ceiling(3600.0 / sph))}\n" +
+                            $"Seats per hour: {sph}");
                     }
                 }
                 catch (Exception exc)
