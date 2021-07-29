@@ -259,7 +259,7 @@ namespace VorneAPITest
             // 
             // nEfficiency
             // 
-            this.nEfficiency.Location = new System.Drawing.Point(286, 377);
+            this.nEfficiency.Location = new System.Drawing.Point(440, 496);
             this.nEfficiency.Maximum = new decimal(new int[] {
             200,
             0,
@@ -271,7 +271,7 @@ namespace VorneAPITest
             0,
             0});
             this.nEfficiency.Name = "nEfficiency";
-            this.nEfficiency.Size = new System.Drawing.Size(44, 20);
+            this.nEfficiency.Size = new System.Drawing.Size(40, 20);
             this.nEfficiency.TabIndex = 28;
             this.nEfficiency.Value = new decimal(new int[] {
             1,
@@ -285,7 +285,7 @@ namespace VorneAPITest
             this.btnCalcTT.Name = "btnCalcTT";
             this.btnCalcTT.Size = new System.Drawing.Size(90, 23);
             this.btnCalcTT.TabIndex = 29;
-            this.btnCalcTT.Text = "Get Cycle Time";
+            this.btnCalcTT.Text = "Get Goals";
             this.btnCalcTT.UseVisualStyleBackColor = true;
             this.btnCalcTT.Click += new System.EventHandler(this.btnCalcTT_Click);
             // 
@@ -294,9 +294,9 @@ namespace VorneAPITest
             this.lblEfficiency.AutoSize = true;
             this.lblEfficiency.Location = new System.Drawing.Point(336, 379);
             this.lblEfficiency.Name = "lblEfficiency";
-            this.lblEfficiency.Size = new System.Drawing.Size(37, 13);
+            this.lblEfficiency.Size = new System.Drawing.Size(61, 13);
             this.lblEfficiency.TabIndex = 30;
-            this.lblEfficiency.Text = "% EFF";
+            this.lblEfficiency.Text = "% LBR EFF";
             // 
             // Form1
             // 

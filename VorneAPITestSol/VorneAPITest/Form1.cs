@@ -842,7 +842,7 @@ namespace VorneAPITest
                         MessageBox.Show($"" +
                             $"Part: {pid}\n" +
                             $"Team size: {teamSize}\n" +
-                            $"Goal efficiency: {eff}%\n" +
+                            $"Goal labor efficiency: {eff}%\n" +
                             $"Goal cycle time: {this.clockFromSec(Math.Ceiling(3600.0 / sph))}\n" +
                             $"Goal seats/hour: {sph}");
                     }
