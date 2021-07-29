@@ -93,7 +93,9 @@ namespace VorneAPITest
             this.playMinutesCount = 0;
             this.lblShuffle.Visible = false;
             this.nShuffles.Visible = false;
+            this.playTimer.Start();
 
+            this.nEfficiency.Value = 100;
 
 
             // initialize partID and productionState
@@ -282,12 +284,11 @@ namespace VorneAPITest
 
                 try
                 {
-                    Stopwatch timer = new Stopwatch();
-                    timer.Start();
+                    
                     string requestPS =  client.makeRequest("http://" + VORNEIP + "/api/v0/process_state/active", httpVerb.GET);
                     string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
-                    timer.Stop();
-                    Console.WriteLine(timer.ElapsedMilliseconds);
+    
+
 
                     if (requestPS == string.Empty || requestPR == string.Empty)
                         throw new Exception("Could not make http request!");
@@ -768,16 +769,11 @@ namespace VorneAPITest
             {
                 this.lblShuffle.Visible = true;
                 this.nShuffles.Visible = true;
-
-                this.playTimer.Start();
-                
             }
             else
             {
                 this.lblShuffle.Visible = false;
                 this.nShuffles.Visible = false;
-
-                this.playTimer.Stop();
             }
         }
 
@@ -785,7 +781,7 @@ namespace VorneAPITest
         {
             this.playMinutesCount++;
 
-            if (this.playMinutesCount >= this.nShuffles.Value)
+            if (this.playMinutesCount >= this.nShuffles.Value && this.checkShuffle.Checked)
             {
 
                 Random random = new Random();
@@ -798,9 +794,7 @@ namespace VorneAPITest
 
         private void nShuffles_ValueChanged(object sender, EventArgs e)
         {
-            this.playTimer.Stop();
             this.playMinutesCount = 0;
-            this.playTimer.Start();
         }
 
         private async void btnCalcTT_Click(object sender, EventArgs e)

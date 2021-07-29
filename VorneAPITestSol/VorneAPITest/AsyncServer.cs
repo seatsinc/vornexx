@@ -230,7 +230,7 @@ namespace VorneAPITest
                 }
 
                 sw.Stop();
-                Console.WriteLine("Dump time: " + sw.ElapsedMilliseconds.ToString());
+
                 sw.Reset();
 
                 this.mutex.ReleaseMutex();
