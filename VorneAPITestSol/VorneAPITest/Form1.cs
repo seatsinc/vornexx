@@ -146,8 +146,13 @@ namespace VorneAPITest
             this.checkShuffle.Location = new Point(wa.Left + this.Width - this.nShuffles.Width - this.checkShuffle.Width - 10, wa.Top + 10 + this.lblPartID.Height);
 
             this.cbSounds.DropDownWidth = this.DropDownWidth(this.cbSounds);
-            this.lblTime.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.lblTime.Height - 10);
-            this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblTime.Height - 10);
+            this.lblWC.Location = new Point(wa.Left + this.Width - this.lblWC.Width - 10, wa.Top + this.Height - this.lblWC.Height - 10);
+
+
+
+            this.btnCalcTT.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.nEfficiency.Height - 10);
+            this.nEfficiency.Location = new Point(wa.Left + 10, wa.Top + this.Height - this.nEfficiency.Height - 10 - this.btnCalcTT.Height);
+            this.lblEfficiency.Location = new Point(wa.Left + this.nEfficiency.Width + 10, wa.Top + this.Height - this.nEfficiency.Height - 10 - this.btnCalcTT.Height);
 
             this.btnHrInc.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y - this.btnHrInc.Height);
             this.btnHrDec.Location = new Point(this.lblClock.Location.X, this.lblClock.Location.Y + this.lblClock.Height);
@@ -798,6 +803,58 @@ namespace VorneAPITest
             this.playTimer.Start();
         }
 
+        private async void btnCalcTT_Click(object sender, EventArgs e)
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    // vorne communication
+                    RestClient client = new RestClient(VORNETIMEOUT, VORNERETRIES);
+
+                    string requestPR = client.makeRequest("http://" + VORNEIP + "/api/v0/part_run", httpVerb.GET);
+                    string requestT = client.makeRequest("http://" + VORNEIP + "/api/v0/team", httpVerb.GET);
+
+
+
+
+                    if (requestT == string.Empty || requestPR == string.Empty)
+                        throw new Exception("Could not make http request!");
+
+
+                    // deserialize objects
+                    TeamNS.Team team = JsonConvert.DeserializeObject<TeamNS.Team>(requestT);
+                    PartRunNS.PartRun partRun = JsonConvert.DeserializeObject<PartRunNS.PartRun>(requestPR);
+
+                    string pid = partRun.data.part_id;
+                    double tlpp = partRun.data.target_labor_per_piece;
+                    double teamSize = team.data.team_size;
+                    double eff = Convert.ToDouble(this.nEfficiency.Value);
+
+                    if (teamSize <= 0.0)
+                    {
+                        MessageBox.Show("Error! Team size must be greater than 0!");
+                    }
+                    else
+                    {
+                        double sph = Math.Ceiling((3600.0 / tlpp) * teamSize * (eff / 100.0));
+
+                        MessageBox.Show($"" +
+                            $"Part: {pid}\n" +
+                            $"Team size: {teamSize}\n" +
+                            $"Goal efficiency: {eff}%\n" +
+                            $"Goal cycle time: {this.clockFromSec(Math.Ceiling(3600.0 / sph))}\n" +
+                            $"Goal seats/hour: {sph}");
+                    }
+                }
+                catch (Exception exc)
+                {
+                    MessageBox.Show("Could not make request!");
+                }
+
+            });
+        }
+
         private void btnStop_Click(object sender, EventArgs e)
         {
             this.btnStart.Visible = true;
@@ -850,7 +907,7 @@ namespace VorneAPITest
 
                         this.lblPartID.Text = this.pID;
 
-                        this.lblTime.Text = DateTime.Now.ToLongTimeString();
+          
 
 
                         if (this.ps == "DOWN")

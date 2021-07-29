@@ -34,7 +34,6 @@ namespace VorneAPITest
             this.lblClock = new System.Windows.Forms.Label();
             this.lblPS = new System.Windows.Forms.Label();
             this.lblPartID = new System.Windows.Forms.Label();
-            this.lblTime = new System.Windows.Forms.Label();
             this.btnHrInc = new System.Windows.Forms.Button();
             this.btnHrDec = new System.Windows.Forms.Button();
             this.btnMinDec = new System.Windows.Forms.Button();
@@ -50,8 +49,12 @@ namespace VorneAPITest
             this.nShuffles = new System.Windows.Forms.NumericUpDown();
             this.lblShuffle = new System.Windows.Forms.Label();
             this.playTimer = new System.Windows.Forms.Timer(this.components);
+            this.nEfficiency = new System.Windows.Forms.NumericUpDown();
+            this.btnCalcTT = new System.Windows.Forms.Button();
+            this.lblEfficiency = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nShuffles)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nEfficiency)).BeginInit();
             this.SuspendLayout();
             // 
             // lblWC
@@ -94,16 +97,6 @@ namespace VorneAPITest
             this.lblPartID.Size = new System.Drawing.Size(92, 24);
             this.lblPartID.TabIndex = 9;
             this.lblPartID.Text = "PART ID#";
-            // 
-            // lblTime
-            // 
-            this.lblTime.AutoSize = true;
-            this.lblTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTime.Location = new System.Drawing.Point(67, 866);
-            this.lblTime.Name = "lblTime";
-            this.lblTime.Size = new System.Drawing.Size(55, 24);
-            this.lblTime.TabIndex = 13;
-            this.lblTime.Text = "TIME";
             // 
             // btnHrInc
             // 
@@ -264,11 +257,55 @@ namespace VorneAPITest
             this.playTimer.Interval = 60000;
             this.playTimer.Tick += new System.EventHandler(this.playTimer_Tick);
             // 
+            // nEfficiency
+            // 
+            this.nEfficiency.Location = new System.Drawing.Point(286, 377);
+            this.nEfficiency.Maximum = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+            this.nEfficiency.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.nEfficiency.Name = "nEfficiency";
+            this.nEfficiency.Size = new System.Drawing.Size(44, 20);
+            this.nEfficiency.TabIndex = 28;
+            this.nEfficiency.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
+            // btnCalcTT
+            // 
+            this.btnCalcTT.Location = new System.Drawing.Point(63, 453);
+            this.btnCalcTT.Name = "btnCalcTT";
+            this.btnCalcTT.Size = new System.Drawing.Size(90, 23);
+            this.btnCalcTT.TabIndex = 29;
+            this.btnCalcTT.Text = "Get Cycle Time";
+            this.btnCalcTT.UseVisualStyleBackColor = true;
+            this.btnCalcTT.Click += new System.EventHandler(this.btnCalcTT_Click);
+            // 
+            // lblEfficiency
+            // 
+            this.lblEfficiency.AutoSize = true;
+            this.lblEfficiency.Location = new System.Drawing.Point(336, 379);
+            this.lblEfficiency.Name = "lblEfficiency";
+            this.lblEfficiency.Size = new System.Drawing.Size(37, 13);
+            this.lblEfficiency.TabIndex = 30;
+            this.lblEfficiency.Text = "% EFF";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1829, 1035);
+            this.Controls.Add(this.lblEfficiency);
+            this.Controls.Add(this.btnCalcTT);
+            this.Controls.Add(this.nEfficiency);
             this.Controls.Add(this.lblShuffle);
             this.Controls.Add(this.nShuffles);
             this.Controls.Add(this.checkShuffle);
@@ -282,7 +319,6 @@ namespace VorneAPITest
             this.Controls.Add(this.btnMinInc);
             this.Controls.Add(this.btnHrDec);
             this.Controls.Add(this.btnHrInc);
-            this.Controls.Add(this.lblTime);
             this.Controls.Add(this.lblPartID);
             this.Controls.Add(this.lblPS);
             this.Controls.Add(this.lblClock);
@@ -295,6 +331,7 @@ namespace VorneAPITest
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pbLogo)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nShuffles)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nEfficiency)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -305,7 +342,6 @@ namespace VorneAPITest
         private System.Windows.Forms.Label lblClock;
         private System.Windows.Forms.Label lblPS;
         private System.Windows.Forms.Label lblPartID;
-        private System.Windows.Forms.Label lblTime;
         private System.Windows.Forms.Button btnHrInc;
         private System.Windows.Forms.Button btnHrDec;
         private System.Windows.Forms.Button btnMinDec;
@@ -321,6 +357,9 @@ namespace VorneAPITest
         private System.Windows.Forms.NumericUpDown nShuffles;
         private System.Windows.Forms.Label lblShuffle;
         private System.Windows.Forms.Timer playTimer;
+        private System.Windows.Forms.NumericUpDown nEfficiency;
+        private System.Windows.Forms.Button btnCalcTT;
+        private System.Windows.Forms.Label lblEfficiency;
     }
 }
 
