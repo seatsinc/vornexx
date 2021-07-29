@@ -28,7 +28,7 @@ namespace VorneAPITest
         // how long the lights will turn off to warn on takt time (takt time / ROLLDIVISOR)
         //const int ROLLDIVISOR = 10;
 
-        public TimeSpan rollTimes;
+
 
         private AsyncServer ss;
 
@@ -218,7 +218,6 @@ namespace VorneAPITest
             this.soundFileName = fileName;
 
             WaveFileReader wf = new WaveFileReader($"resources\\audio\\{fileName}");
-            rollTimes = wf.TotalTime;
 
             try
             {
@@ -411,7 +410,7 @@ namespace VorneAPITest
         {
             this.ps = Util.replAwBStr(this.ps, '_', ' ');
 
-            if (this.stopped == false && this.tt < this.rollTimes.TotalSeconds)
+            if (this.stopped == false && this.tt < 10)
             {
                 return "BLACK";
             }
@@ -898,7 +897,7 @@ namespace VorneAPITest
                     {
 
 
-                        if (this.tt < this.rollTimes.TotalSeconds && this.stopped == false)
+                        if (this.tt < 10 && this.stopped == false)
                             this.lblPS.Text = "ROLL!";
                         else
                             this.lblPS.Text = this.ps;
